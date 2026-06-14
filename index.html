@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <title>Modserver 3 mapa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #111;
+      font-family: Arial, sans-serif;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      background: #000;
+    }
+
+    .panel {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 1000;
+      width: 280px;
+      background: rgba(20,20,20,0.92);
+      color: white;
+      padding: 12px;
+      border-radius: 12px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .panel label {
+      display: block;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    .panel input {
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 4px;
+      padding: 9px;
+      border-radius: 8px;
+      border: 1px solid #444;
+      background: #1d1d1d;
+      color: white;
+    }
+
+    .panel button {
+      width: 100%;
+      margin-top: 8px;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #2d6cdf;
+      color: white;
+      cursor: pointer;
+    }
+
+    .coords-box {
+      margin-top: 10px;
+      padding: 10px;
+      background: #1a1a1a;
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="panel">
+    <h2>Modserver 3 mapa</h2>
+
+    <label>Minecraft X</label>
+    <input id="coordX" type="number" placeholder="napr. 1200">
+
+    <label>Minecraft Z</label>
+    <input id="coordZ" type="number" placeholder="napr. -3400">
+
+    <button id="goToCoords">Prejsť na súradnice</button>
+    <button id="resetView">Reset pohľadu</button>
+
+    <div class="coords-box" id="clickedCoords">
+      Klikni na mapu a ukážu sa MC súradnice.
+    </div>
+  </div>
+
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    const imageWidth = 15104;
+    const imageHeight = 15104;
+
+    const mcMinX = -7504;
+    const mcMaxX = 7503;
+    const mcMinZ = -7504;
+    const mcMaxZ = 7503;
+
+    const bounds = [[0, 0], [imageHeight, imageWidth]];
+
+    const map = L.map("map", {
+      crs: L.CRS.Simple,
+      minZoom: -4,
+      maxZoom: 2,
+      zoomSnap: 0.25,
+      zoomDelta: 0.25,
+      maxBounds: bounds,
+      maxBoundsViscosity: 1.0
+    });
+
+    L.tileLayer("tiles/{x}_{y}.jpg", {
+      tileSize: 256,
+      minZoom: -4,
+      maxZoom: 2,
+      minNativeZoom: 0,
+      maxNativeZoom: 0,
+      noWrap: true,
+      bounds: bounds
+    }).addTo(map);
+
+    map.fitBounds(bounds);
+
+    let searchMarker = null;
+
+    function mcToPixel(x, z) {
+      const px = ((x - mcMinX) / (mcMaxX - mcMinX)) * imageWidth;
+      const py = ((mcMaxZ - z) / (mcMaxZ - mcMinZ)) * imageHeight;
+      return [py, px];
+    }
+
+    function pixelToMc(py, px) {
+      const x = Math.round(mcMinX + (px / imageWidth) * (mcMaxX - mcMinX));
+      const z = Math.round(mcMaxZ - (py / imageHeight) * (mcMaxZ - mcMinZ));
+      return { x, z };
+    }
+
+    map.on("click", function(e) {
+      const mc = pixelToMc(e.latlng.lat, e.latlng.lng);
+
+      document.getElementById("clickedCoords").innerHTML =
+        `<strong>Posledný klik:</strong><br>X: ${mc.x}<br>Z: ${mc.z}`;
+
+      if (searchMarker) map.removeLayer(searchMarker);
+
+      searchMarker = L.marker(e.latlng).addTo(map)
+        .bindPopup(`X: ${mc.x}<br>Z: ${mc.z}`)
+        .openPopup();
+    });
+
+    document.getElementById("goToCoords").addEventListener("click", function() {
+      const x = parseInt(document.getElementById("coordX").value, 10);
+      const z = parseInt(document.getElementById("coordZ").value, 10);
+
+      if (isNaN(x) || isNaN(z)) {
+        alert("Zadaj platné X a Z.");
+        return;
+      }
+
+      const [py, px] = mcToPixel(x, z);
+
+      map.setView([py, px], 0);
+
+      if (searchMarker) map.removeLayer(searchMarker);
+
+      searchMarker = L.marker([py, px]).addTo(map)
+        .bindPopup(`X: ${x}<br>Z: ${z}`)
+        .openPopup();
+    });
+
+    document.getElementById("resetView").addEventListener("click", function() {
+      map.fitBounds(bounds);
+    });
+  </script>
+</body>
+</html>
