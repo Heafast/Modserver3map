@@ -125,42 +125,23 @@
       maxBoundsViscosity: 1.0
     });
 
-    const TileLayer = L.GridLayer.extend({
-      createTile: function(coords) {
-        const tile = document.createElement("img");
+// ===== NAČÍTANIE TILES =====
+for (let y = 0; y < tileCount; y++) {
+  for (let x = 0; x < tileCount; x++) {
+    const top = y * tileSize;
+    const left = x * tileSize;
+    const bottom = top + tileSize;
+    const right = left + tileSize;
 
-        tile.width = tileSize;
-        tile.height = tileSize;
-
-        const scale = Math.pow(2, coords.z);
-        const x = Math.floor(coords.x / scale);
-        const y = Math.floor(coords.y / scale);
-
-        if (x >= 0 && x < tileCount && y >= 0 && y < tileCount) {
-          tile.src = "tiles/" + x + "_" + y + ".jpg";
-        }
-
-        tile.style.width = tileSize + "px";
-        tile.style.height = tileSize + "px";
-        tile.style.imageRendering = "auto";
-
-        tile.onerror = function() {
-          tile.style.display = "none";
-        };
-
-        return tile;
-      }
-    });
-
-    const tiles = new TileLayer({
-      tileSize: tileSize,
-      minZoom: 0,
-      maxZoom: 0,
-      noWrap: true,
-      bounds: bounds
-    });
-
-    tiles.addTo(map);
+    L.imageOverlay(
+      `tiles/${x}_${y}.jpg`,
+      [
+        [top, left],
+        [bottom, right]
+      ]
+    ).addTo(map);
+  }
+}
     map.fitBounds(bounds);
 
     let searchMarker = null;
