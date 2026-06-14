@@ -26,7 +26,9 @@
       top: 12px;
       left: 12px;
       z-index: 1000;
-      width: 280px;
+      width: 300px;
+      max-height: calc(100vh - 24px);
+      overflow: auto;
       background: rgba(20,20,20,0.92);
       color: white;
       padding: 12px;
@@ -45,7 +47,7 @@
       font-size: 13px;
     }
 
-    .panel input {
+    .panel input[type="number"] {
       width: 100%;
       box-sizing: border-box;
       margin-top: 4px;
@@ -54,6 +56,11 @@
       border: 1px solid #444;
       background: #1d1d1d;
       color: white;
+    }
+
+    .panel input[type="checkbox"] {
+      width: auto;
+      margin-right: 6px;
     }
 
     .panel button {
@@ -76,6 +83,69 @@
       font-size: 14px;
       line-height: 1.5;
     }
+
+    .region-label,
+    .state-label {
+      color: white;
+      font-weight: bold;
+      text-shadow:
+        2px 2px 0 rgba(0,0,0,0.75),
+        -1px -1px 0 rgba(0,0,0,0.75),
+        1px -1px 0 rgba(0,0,0,0.75),
+        -1px 1px 0 rgba(0,0,0,0.75);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .region-label {
+      font-size: 17px;
+    }
+
+    .state-label {
+      font-size: 26px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .pixel-marker {
+      width: 18px;
+      height: 18px;
+      position: relative;
+      image-rendering: pixelated;
+    }
+
+    .pixel-marker::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      box-sizing: border-box;
+      border: 2px solid #111;
+      box-shadow:
+        inset -2px -2px 0 rgba(0,0,0,0.35),
+        inset 2px 2px 0 rgba(255,255,255,0.12);
+    }
+
+    .pixel-marker::after {
+      content: "";
+      position: absolute;
+      left: 6px;
+      bottom: -6px;
+      width: 6px;
+      height: 6px;
+      background: inherit;
+      border-left: 2px solid #111;
+      border-bottom: 2px solid #111;
+      transform: rotate(-45deg);
+      box-sizing: border-box;
+    }
+
+    .marker-city {
+      background: #c1121f;
+    }
+
+    .marker-structure {
+      background: #163a70;
+    }
   </style>
 </head>
 
@@ -95,6 +165,15 @@
     <div class="coords-box" id="clickedCoords">
       Klikni na mapu a ukážu sa MC súradnice.
     </div>
+
+    <div class="coords-box">
+      <strong>Filtre</strong><br>
+      <label><input type="checkbox" id="toggleStates" checked> Štátne hranice</label>
+      <label><input type="checkbox" id="toggleRegions" checked> Regióny</label>
+      <label><input type="checkbox" id="toggleRegionLabels" checked> Názvy regiónov</label>
+      <label><input type="checkbox" id="toggleCities" checked> Mestá</label>
+      <label><input type="checkbox" id="toggleStructures" checked> Štruktúry</label>
+    </div>
   </div>
 
   <div id="map"></div>
@@ -102,6 +181,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
+    // ===== MAPA / TILES =====
     const imageWidth = 15104;
     const imageHeight = 15104;
 
@@ -125,27 +205,23 @@
       maxBoundsViscosity: 1.0
     });
 
-// ===== NAČÍTANIE TILES =====
-for (let y = 0; y < tileCount; y++) {
-  for (let x = 0; x < tileCount; x++) {
-    const top = y * tileSize;
-    const left = x * tileSize;
-    const bottom = top + tileSize;
-    const right = left + tileSize;
+    for (let y = 0; y < tileCount; y++) {
+      for (let x = 0; x < tileCount; x++) {
+        const top = y * tileSize;
+        const left = x * tileSize;
+        const bottom = top + tileSize;
+        const right = left + tileSize;
 
-    L.imageOverlay(
-      `tiles/${x}_${tileCount - 1 - y}.jpg`,
-      [
-        [top, left],
-        [bottom, right]
-      ]
-    ).addTo(map);
-  }
-}
+        L.imageOverlay(
+          `tiles/${x}_${tileCount - 1 - y}.jpg`,
+          [[top, left], [bottom, right]]
+        ).addTo(map);
+      }
+    }
+
     map.fitBounds(bounds);
 
-    let searchMarker = null;
-
+    // ===== KONVERZIA MC <-> PIXEL =====
     function mcToPixel(x, z) {
       const px = ((x - mcMinX) / (mcMaxX - mcMinX)) * imageWidth;
       const py = ((mcMaxZ - z) / (mcMaxZ - mcMinZ)) * imageHeight;
@@ -158,16 +234,320 @@ for (let y = 0; y < tileCount; y++) {
       return { x, z };
     }
 
+    // ===== ŠTÁTY =====
+    const states = {
+      valkyria: {
+        name: "Valkýria",
+        color: "#c1121f"
+      },
+      grankolandia: {
+        name: "Grankolandia",
+        color: "#e0c100"
+      },
+      norddeutschland: {
+        name: "Norddeutschland",
+        color: "#2a6fff"
+      },
+      neutral: {
+        name: "Neutrálna oblasť",
+        color: "#9a9a9a"
+      }
+    };
+
+    // ===== REGIÓNY =====
+    // Ak chceš región presunúť do iného štátu, zmeníš iba stateId.
+    const regions = {
+      testRegion: {
+        name: "Testovací región",
+        stateId: "valkyria",
+        label: { x: 0, z: 0 },
+        points: [
+          { x: -500, z: 500 },
+          { x: 500, z: 500 },
+          { x: 500, z: -500 },
+          { x: -500, z: -500 }
+        ]
+      }
+
+      // Sem budeme pridávať regióny z tvojho súboru POINTS.
+    };
+
+    // ===== MESTÁ =====
+    // Mesto má regionId, nie stateId.
+    // Štát sa dopočíta automaticky cez región.
+    const cities = [
+      {
+        name: "Test mesto",
+        x: 0,
+        z: 0,
+        type: "Dedina",
+        regionId: "testRegion",
+        minZoom: -2
+      }
+
+      // Sem budeme pridávať mestá zo súboru CITIES.
+    ];
+
+    // ===== ŠTRUKTÚRY =====
+    const structures = [
+      {
+        name: "Test štruktúra",
+        x: 250,
+        z: 250,
+        type: "Dungeon",
+        regionId: "testRegion",
+        minZoom: -2
+      }
+
+      // Sem budeme pridávať štruktúry zo súboru STRUCTURES.
+    ];
+
+    // ===== VRSTVY =====
+    const stateBordersLayer = L.layerGroup().addTo(map);
+    const regionsLayer = L.layerGroup().addTo(map);
+    const regionLabelsLayer = L.layerGroup().addTo(map);
+    const citiesLayer = L.layerGroup().addTo(map);
+    const structuresLayer = L.layerGroup().addTo(map);
+
+    const allDynamicLayers = [
+      stateBordersLayer,
+      regionsLayer,
+      regionLabelsLayer,
+      citiesLayer,
+      structuresLayer
+    ];
+
+    // ===== IKONY =====
+    const cityIcon = L.divIcon({
+      className: "",
+      html: `<div class="pixel-marker marker-city"></div>`,
+      iconSize: [18, 24],
+      iconAnchor: [9, 24],
+      popupAnchor: [0, -20]
+    });
+
+    const structureIcon = L.divIcon({
+      className: "",
+      html: `<div class="pixel-marker marker-structure"></div>`,
+      iconSize: [18, 24],
+      iconAnchor: [9, 24],
+      popupAnchor: [0, -20]
+    });
+
+    // ===== POMOCNÉ FUNKCIE =====
+    function getStateByRegion(regionId) {
+      const region = regions[regionId];
+      if (!region) return null;
+      return states[region.stateId] || null;
+    }
+
+    function getRegionName(regionId) {
+      return regions[regionId]?.name || "Neznámy región";
+    }
+
+    function getStateNameByRegion(regionId) {
+      const state = getStateByRegion(regionId);
+      return state ? state.name : "Neznámy štát";
+    }
+
+    function getStateColorByRegion(regionId) {
+      const state = getStateByRegion(regionId);
+      return state ? state.color : "#ffffff";
+    }
+
+    function isChecked(id) {
+      return document.getElementById(id).checked;
+    }
+
+    function clearDynamicLayers() {
+      allDynamicLayers.forEach(layer => layer.clearLayers());
+    }
+
+    function pointInPolygon(point, polygon) {
+      const x = point.x;
+      const z = point.z;
+      let inside = false;
+
+      for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        const xi = polygon[i].x;
+        const zi = polygon[i].z;
+        const xj = polygon[j].x;
+        const zj = polygon[j].z;
+
+        const intersect =
+          ((zi > z) !== (zj > z)) &&
+          (x < (xj - xi) * (z - zi) / (zj - zi) + xi);
+
+        if (intersect) inside = !inside;
+      }
+
+      return inside;
+    }
+
+    function findRegionForPoint(x, z) {
+      for (const regionId in regions) {
+        if (pointInPolygon({ x, z }, regions[regionId].points)) {
+          return regionId;
+        }
+      }
+      return null;
+    }
+
+    function ensureRegionIdForItems() {
+      cities.forEach(city => {
+        if (!city.regionId) {
+          city.regionId = findRegionForPoint(city.x, city.z);
+        }
+      });
+
+      structures.forEach(structure => {
+        if (!structure.regionId) {
+          structure.regionId = findRegionForPoint(structure.x, structure.z);
+        }
+      });
+    }
+
+    // Touto funkciou vieš presunúť región do iného štátu.
+    // Napr.: changeRegionState("testRegion", "grankolandia")
+    function changeRegionState(regionId, newStateId) {
+      if (!regions[regionId]) {
+        console.warn("Región neexistuje:", regionId);
+        return;
+      }
+
+      if (!states[newStateId]) {
+        console.warn("Štát neexistuje:", newStateId);
+        return;
+      }
+
+      regions[regionId].stateId = newStateId;
+      renderAll();
+    }
+
+    // ===== VYKRESĽOVANIE =====
+    function renderRegions() {
+      for (const regionId in regions) {
+        const region = regions[regionId];
+        const state = states[region.stateId];
+        const color = state ? state.color : "#ffffff";
+
+        const latlngs = region.points.map(p => mcToPixel(p.x, p.z));
+
+        // Hrubšia štátna hranica pod regiónom
+        if (isChecked("toggleStates")) {
+          L.polygon(latlngs, {
+            color: color,
+            weight: 7,
+            fillOpacity: 0,
+            opacity: 0.95
+          }).addTo(stateBordersLayer);
+        }
+
+        // Tenká hranica regiónu
+        if (isChecked("toggleRegions")) {
+          const polygon = L.polygon(latlngs, {
+            color: color,
+            weight: 2,
+            fillOpacity: 0,
+            opacity: 0.95
+          });
+
+          polygon.bindPopup(`
+            <b>${region.name}</b><br>
+            Región ID: ${regionId}<br>
+            Štát: ${state ? state.name : "Neznámy štát"}
+          `);
+
+          polygon.addTo(regionsLayer);
+        }
+
+        if (isChecked("toggleRegionLabels") && region.label) {
+          const label = L.marker(mcToPixel(region.label.x, region.label.z), {
+            icon: L.divIcon({
+              className: "",
+              html: `<div class="region-label">${region.name}</div>`,
+              iconSize: [220, 28],
+              iconAnchor: [110, 14]
+            }),
+            interactive: false
+          });
+
+          label.addTo(regionLabelsLayer);
+        }
+      }
+    }
+
+    function renderCities() {
+      if (!isChecked("toggleCities")) return;
+
+      cities.forEach(city => {
+        const marker = L.marker(mcToPixel(city.x, city.z), { icon: cityIcon });
+
+        marker.bindPopup(`
+          <b>${city.name}</b><br>
+          Typ: ${city.type}<br>
+          Región: ${getRegionName(city.regionId)}<br>
+          Štát: ${getStateNameByRegion(city.regionId)}<br>
+          X: ${city.x}<br>
+          Z: ${city.z}
+        `);
+
+        marker.addTo(citiesLayer);
+      });
+    }
+
+    function renderStructures() {
+      if (!isChecked("toggleStructures")) return;
+
+      structures.forEach(structure => {
+        const marker = L.marker(mcToPixel(structure.x, structure.z), { icon: structureIcon });
+
+        marker.bindPopup(`
+          <b>${structure.name}</b><br>
+          Typ: ${structure.type}<br>
+          Región: ${getRegionName(structure.regionId)}<br>
+          Štát: ${getStateNameByRegion(structure.regionId)}<br>
+          X: ${structure.x}<br>
+          Z: ${structure.z}
+        `);
+
+        marker.addTo(structuresLayer);
+      });
+    }
+
+    function renderAll() {
+      clearDynamicLayers();
+      ensureRegionIdForItems();
+      renderRegions();
+      renderCities();
+      renderStructures();
+    }
+
+    // ===== KLIK NA MAPU =====
+    let searchMarker = null;
+
     map.on("click", function(e) {
       const mc = pixelToMc(e.latlng.lat, e.latlng.lng);
+      const regionId = findRegionForPoint(mc.x, mc.z);
+      const regionName = regionId ? getRegionName(regionId) : "Mimo regiónu";
+      const stateName = regionId ? getStateNameByRegion(regionId) : "Mimo štátu";
 
       document.getElementById("clickedCoords").innerHTML =
-        `<strong>Posledný klik:</strong><br>X: ${mc.x}<br>Z: ${mc.z}`;
+        `<strong>Posledný klik:</strong><br>
+         X: ${mc.x}<br>
+         Z: ${mc.z}<br>
+         Región: ${regionName}<br>
+         Štát: ${stateName}`;
 
       if (searchMarker) map.removeLayer(searchMarker);
 
       searchMarker = L.marker(e.latlng).addTo(map)
-        .bindPopup(`X: ${mc.x}<br>Z: ${mc.z}`)
+        .bindPopup(`
+          X: ${mc.x}<br>
+          Z: ${mc.z}<br>
+          Región: ${regionName}<br>
+          Štát: ${stateName}
+        `)
         .openPopup();
     });
 
@@ -181,19 +561,35 @@ for (let y = 0; y < tileCount; y++) {
       }
 
       const [py, px] = mcToPixel(x, z);
+      const regionId = findRegionForPoint(x, z);
+      const regionName = regionId ? getRegionName(regionId) : "Mimo regiónu";
+      const stateName = regionId ? getStateNameByRegion(regionId) : "Mimo štátu";
 
       map.setView([py, px], 0);
 
       if (searchMarker) map.removeLayer(searchMarker);
 
       searchMarker = L.marker([py, px]).addTo(map)
-        .bindPopup(`X: ${x}<br>Z: ${z}`)
+        .bindPopup(`
+          X: ${x}<br>
+          Z: ${z}<br>
+          Región: ${regionName}<br>
+          Štát: ${stateName}
+        `)
         .openPopup();
     });
 
     document.getElementById("resetView").addEventListener("click", function() {
       map.fitBounds(bounds);
     });
+
+    document.getElementById("toggleStates").addEventListener("change", renderAll);
+    document.getElementById("toggleRegions").addEventListener("change", renderAll);
+    document.getElementById("toggleRegionLabels").addEventListener("change", renderAll);
+    document.getElementById("toggleCities").addEventListener("change", renderAll);
+    document.getElementById("toggleStructures").addEventListener("change", renderAll);
+
+    renderAll();
   </script>
 </body>
 </html>
