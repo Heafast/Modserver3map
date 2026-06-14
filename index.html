@@ -182,16 +182,21 @@
 
   <script>
     // ===== MAPA / TILES =====
-    const imageWidth = 15104;
-    const imageHeight = 15104;
+   const imageWidth = 15104;
+const imageHeight = 15104;
 
-    const tileSize = 256;
-    const tileCount = 59;
+const tileSize = 256;
+const tileCount = 59;
 
-    const mcMinX = -7504;
-    const mcMaxX = 7503;
-    const mcMinZ = -7504;
-    const mcMaxZ = 7503;
+// skutočná Xaero mapa bez čierneho okraja
+const mapContentWidth = 15008;
+const mapContentHeight = 15008;
+const mapPadding = 48;
+
+const mcMinX = -7504;
+const mcMaxX = 7503;
+const mcMinZ = -7504;
+const mcMaxZ = 7503;
 
     const bounds = [[0, 0], [imageHeight, imageWidth]];
 
@@ -222,17 +227,23 @@
     map.fitBounds(bounds);
 
     // ===== KONVERZIA MC <-> PIXEL =====
-    function mcToPixel(x, z) {
-      const px = ((x - mcMinX) / (mcMaxX - mcMinX)) * imageWidth;
-      const py = ((mcMaxZ - z) / (mcMaxZ - mcMinZ)) * imageHeight;
-      return [py, px];
-    }
+function mcToPixel(x, z) {
+  const px = mapPadding + ((x - mcMinX) / (mcMaxX - mcMinX)) * mapContentWidth;
+  const py = mapPadding + ((mcMaxZ - z) / (mcMaxZ - mcMinZ)) * mapContentHeight;
+  return [py, px];
+}
 
-    function pixelToMc(py, px) {
-      const x = Math.round(mcMinX + (px / imageWidth) * (mcMaxX - mcMinX));
-      const z = Math.round(mcMaxZ - (py / imageHeight) * (mcMaxZ - mcMinZ));
-      return { x, z };
-    }
+function pixelToMc(py, px) {
+  const x = Math.round(
+    mcMinX + ((px - mapPadding) / mapContentWidth) * (mcMaxX - mcMinX)
+  );
+
+  const z = Math.round(
+    mcMaxZ - ((py - mapPadding) / mapContentHeight) * (mcMaxZ - mcMinZ)
+  );
+
+  return { x, z };
+}
 
     // ===== ŠTÁTY =====
     const states = {
