@@ -134,7 +134,7 @@ for (let y = 0; y < tileCount; y++) {
     const right = left + tileSize;
 
     L.imageOverlay(
-      `tiles/${x}_${y}.jpg`,
+      `tiles/${x}_${tileCount - 1 - y}.jpg`,
       [
         [top, left],
         [bottom, right]
