@@ -502,11 +502,24 @@
             opacity: 0.95
           });
 
-          polygon.bindPopup(`
-            <b>${region.name}</b><br>
-            Región ID: ${regionId}<br>
-            Štát: ${state ? state.name : "Neznámy štát"}
-          `);
+        polygon.on("click", function(e) {
+
+  const mc = pixelToMc(
+    e.latlng.lat,
+    e.latlng.lng
+  );
+
+  L.popup()
+    .setLatLng(e.latlng)
+    .setContent(`
+      <b>${region.name}</b><br>
+      Štát: ${state ? state.name : "Neznámy štát"}<br><br>
+      X: ${mc.x}<br>
+      Z: ${mc.z}
+    `)
+    .openOn(map);
+
+});
 
           polygon.addTo(regionsLayer);
         }
