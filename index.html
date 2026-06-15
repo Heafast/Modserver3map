@@ -105,6 +105,9 @@
     const imageWidth = 15104;
     const imageHeight = 15104;
 
+    const tileSize = 256;
+    const tileCount = 59;
+
     const mcMinX = -7504;
     const mcMaxX = 7503;
     const mcMinZ = -7504;
@@ -114,24 +117,31 @@
 
     const map = L.map("map", {
       crs: L.CRS.Simple,
-      minZoom: -4,
-      maxZoom: 2,
+      minZoom: -5,
+      maxZoom: 3,
       zoomSnap: 0.25,
       zoomDelta: 0.25,
       maxBounds: bounds,
       maxBoundsViscosity: 1.0
     });
 
-    L.tileLayer("tiles/{x}_{y}.jpg", {
-      tileSize: 256,
-      minZoom: -4,
-      maxZoom: 2,
-      minNativeZoom: 0,
-      maxNativeZoom: 0,
-      noWrap: true,
-      bounds: bounds
-    }).addTo(map);
+// ===== NAČÍTANIE TILES =====
+for (let y = 0; y < tileCount; y++) {
+  for (let x = 0; x < tileCount; x++) {
+    const top = y * tileSize;
+    const left = x * tileSize;
+    const bottom = top + tileSize;
+    const right = left + tileSize;
 
+    L.imageOverlay(
+      `tiles/${x}_${tileCount - 1 - y}.jpg`,
+      [
+        [top, left],
+        [bottom, right]
+      ]
+    ).addTo(map);
+  }
+}
     map.fitBounds(bounds);
 
     let searchMarker = null;
