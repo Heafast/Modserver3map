@@ -27,15 +27,20 @@
   position: fixed;
   top: 12px;
   right: 12px;
-  z-index: 1100;
+
   width: 330px;
   max-height: calc(100vh - 24px);
+
   overflow: auto;
+
   background: rgba(20,20,20,0.95);
-  color: white;
-  padding: 12px;
+
   border-radius: 12px;
-  box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+  padding: 45px 12px 12px 12px;
+
+  z-index: 1100;
+
+  color: white;
 }
 
 .list-panel.open {
@@ -43,13 +48,21 @@
 }
 
 .list-close {
-  float: right;
-  background: #444;
-  color: white;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+
+  width: 32px;
+  height: 32px;
+
   border: none;
   border-radius: 6px;
-  padding: 4px 8px;
+
+  background: #444;
+  color: white;
+
   cursor: pointer;
+  z-index: 9999;
 }
 
 .list-panel details {
