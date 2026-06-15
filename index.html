@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Modserver 3 mapa</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
   <style>
@@ -26,7 +25,9 @@
       top: 12px;
       left: 12px;
       z-index: 1000;
-      width: 280px;
+      width: 300px;
+      max-height: calc(100vh - 24px);
+      overflow: auto;
       background: rgba(20,20,20,0.92);
       color: white;
       padding: 12px;
@@ -45,7 +46,7 @@
       font-size: 13px;
     }
 
-    .panel input {
+    .panel input[type="number"] {
       width: 100%;
       box-sizing: border-box;
       margin-top: 4px;
@@ -54,6 +55,11 @@
       border: 1px solid #444;
       background: #1d1d1d;
       color: white;
+    }
+
+    .panel input[type="checkbox"] {
+      width: auto;
+      margin-right: 6px;
     }
 
     .panel button {
@@ -76,6 +82,59 @@
       font-size: 14px;
       line-height: 1.5;
     }
+
+    .region-label {
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+      text-shadow:
+        2px 2px 0 rgba(0,0,0,0.75),
+        -1px -1px 0 rgba(0,0,0,0.75),
+        1px -1px 0 rgba(0,0,0,0.75),
+        -1px 1px 0 rgba(0,0,0,0.75);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .pixel-marker {
+      width: 18px;
+      height: 18px;
+      position: relative;
+      image-rendering: pixelated;
+    }
+
+    .pixel-marker::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      box-sizing: border-box;
+      border: 2px solid #111;
+      box-shadow:
+        inset -2px -2px 0 rgba(0,0,0,0.35),
+        inset 2px 2px 0 rgba(255,255,255,0.12);
+    }
+
+    .pixel-marker::after {
+      content: "";
+      position: absolute;
+      left: 6px;
+      bottom: -6px;
+      width: 6px;
+      height: 6px;
+      background: inherit;
+      border-left: 2px solid #111;
+      border-bottom: 2px solid #111;
+      transform: rotate(-45deg);
+      box-sizing: border-box;
+    }
+
+    .marker-city {
+      background: #c1121f;
+    }
+
+    .marker-structure {
+      background: #163a70;
+    }
   </style>
 </head>
 
@@ -84,16 +143,25 @@
     <h2>Modserver 3 mapa</h2>
 
     <label>Minecraft X</label>
-    <input id="coordX" type="number" placeholder="napr. 1200">
+    <input id="coordX" type="number" placeholder="napr. -1774">
 
     <label>Minecraft Z</label>
-    <input id="coordZ" type="number" placeholder="napr. -3400">
+    <input id="coordZ" type="number" placeholder="napr. 813">
 
     <button id="goToCoords">Prejsť na súradnice</button>
     <button id="resetView">Reset pohľadu</button>
 
     <div class="coords-box" id="clickedCoords">
       Klikni na mapu a ukážu sa MC súradnice.
+    </div>
+
+    <div class="coords-box">
+      <strong>Filtre</strong><br>
+      <label><input type="checkbox" id="toggleStates" checked> Štátne hranice</label>
+      <label><input type="checkbox" id="toggleRegions" checked> Regióny</label>
+      <label><input type="checkbox" id="toggleRegionLabels" checked> Názvy regiónov</label>
+      <label><input type="checkbox" id="toggleCities" checked> Mestá</label>
+      <label><input type="checkbox" id="toggleStructures" checked> Štruktúry</label>
     </div>
   </div>
 
@@ -102,12 +170,21 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
+    // ===== MAPA / TILES =====
     const imageWidth = 15104;
     const imageHeight = 15104;
 
     const tileSize = 256;
     const tileCount = 59;
 
+<<<<<<< HEAD
+=======
+    // Skutočná mapa má 15008 px, potom si pridal čierny okraj 48 px z každej strany.
+    const mapContentWidth = 15008;
+    const mapContentHeight = 15008;
+    const mapPadding = 48;
+
+>>>>>>> f3515dbf15a17b35cdd3b78cc0c9d290fbee2258
     const mcMinX = -7504;
     const mcMaxX = 7503;
     const mcMinZ = -7504;
@@ -125,6 +202,7 @@
       maxBoundsViscosity: 1.0
     });
 
+<<<<<<< HEAD
 // ===== NAČÍTANIE TILES =====
 for (let y = 0; y < tileCount; y++) {
   for (let x = 0; x < tileCount; x++) {
@@ -132,6 +210,22 @@ for (let y = 0; y < tileCount; y++) {
     const left = x * tileSize;
     const bottom = top + tileSize;
     const right = left + tileSize;
+=======
+    // Dlaždice. Y je otočené správne.
+    for (let y = 0; y < tileCount; y++) {
+      for (let x = 0; x < tileCount; x++) {
+        const top = y * tileSize;
+        const left = x * tileSize;
+        const bottom = top + tileSize;
+        const right = left + tileSize;
+
+        L.imageOverlay(
+          `tiles/${x}_${tileCount - 1 - y}.jpg`,
+          [[top, left], [bottom, right]]
+        ).addTo(map);
+      }
+    }
+>>>>>>> f3515dbf15a17b35cdd3b78cc0c9d290fbee2258
 
     L.imageOverlay(
       `tiles/${x}_${tileCount - 1 - y}.jpg`,
@@ -144,30 +238,574 @@ for (let y = 0; y < tileCount; y++) {
 }
     map.fitBounds(bounds);
 
-    let searchMarker = null;
-
+    // ===== PREVOD MC SÚRADNÍC =====
     function mcToPixel(x, z) {
-      const px = ((x - mcMinX) / (mcMaxX - mcMinX)) * imageWidth;
-      const py = ((mcMaxZ - z) / (mcMaxZ - mcMinZ)) * imageHeight;
+      const px = mapPadding + ((x - mcMinX) / (mcMaxX - mcMinX)) * mapContentWidth;
+      const py = mapPadding + ((mcMaxZ - z) / (mcMaxZ - mcMinZ)) * mapContentHeight;
       return [py, px];
     }
 
     function pixelToMc(py, px) {
-      const x = Math.round(mcMinX + (px / imageWidth) * (mcMaxX - mcMinX));
-      const z = Math.round(mcMaxZ - (py / imageHeight) * (mcMaxZ - mcMinZ));
+      const x = Math.round(
+        mcMinX + ((px - mapPadding) / mapContentWidth) * (mcMaxX - mcMinX)
+      );
+
+      const z = Math.round(
+        mcMaxZ - ((py - mapPadding) / mapContentHeight) * (mcMaxZ - mcMinZ)
+      );
+
       return { x, z };
     }
+
+    // ===== ŠTÁTY =====
+    const states = {
+      neutral: {
+        name: "Neutrálna oblasť",
+        color: "#9a9a9a"
+      },
+      valkyria: {
+        name: "Valkýria",
+        color: "#c1121f"
+      },
+      grankolandia: {
+        name: "Grankolandia",
+        color: "#e0c100"
+      },
+      norddeutschland: {
+        name: "Norddeutschland",
+        color: "#2a6fff"
+      }
+    };
+
+    // ===== REGIÓNY =====
+    // Keď chceš presunúť región do iného štátu, zmeň iba stateId.
+    const regions = {
+      spawnPlain: {
+        name: "Spawn Plain",
+        stateId: "neutral",
+        label: { x: -2050, z: 520 },
+        points: [
+          { x: -2391, z: 679 }, // S15
+          { x: -2459, z: 643 }, // S16
+          { x: -2464, z: 593 }, // S17
+          { x: -2465, z: 406 }, // S18 západný
+          { x: -2440, z: 336 }, // S01
+          { x: -2184, z: 167 }, // S2
+          { x: -1975, z: 143 }, // S3
+          { x: -1835, z: 217 }, // S4
+          { x: -1702, z: 326 }, // S5
+          { x: -1645, z: 437 }, // S23
+          { x: -1701, z: 614 }, // S21
+          { x: -1760, z: 680 }, // S20
+          { x: -1990, z: 680 }, // S19
+          { x: -2180, z: 696 }  // S18 severný
+        ]
+      },
+
+      centralLand: {
+        name: "Central Land",
+        stateId: "neutral",
+        label: { x: -1530, z: 410 },
+        points: [
+          { x: -1702, z: 326 }, // S5
+          { x: -1649, z: 247 }, // S6
+          { x: -1448, z: 132 }, // S7
+          { x: -1274, z: 337 }, // S8
+          { x: -1392, z: 347 }, // S9
+          { x: -1457, z: 494 }, // S10
+          { x: -1535, z: 619 }, // S22
+          { x: -1701, z: 614 }, // S21
+          { x: -1645, z: 437 }  // S23
+        ]
+      },
+
+      spawnVillage: {
+        name: "Spawn Village",
+        stateId: "neutral",
+        label: { x: -1900, z: 790 },
+        points: [
+          { x: -1535, z: 619 }, // S22
+          { x: -1701, z: 614 }, // S21
+          { x: -1760, z: 680 }, // S20
+          { x: -1990, z: 680 }, // S19
+          { x: -2180, z: 696 }, // S18 severný
+          { x: -2391, z: 679 }, // S15
+          { x: -2209, z: 764 }, // S14
+          { x: -2197, z: 918 }, // S13
+          { x: -1785, z: 932 }, // S12
+          { x: -1689, z: 880 }  // S11
+        ]
+      },
+            amwark: {
+        name: "Amwark",
+        stateId: "valkyria",
+        label: { x: -2876, z: 994 },
+        points: [
+          { x: -2369, z: 943 }, // V01
+          { x: -2519, z: 958 }, // V02
+          { x: -2599, z: 1138 }, // V03
+          { x: -2769, z: 1424 }, // V04
+          { x: -2819, z: 1649 }, // V05
+          { x: -3194, z: 1674 }, // V06
+          { x: -3311, z: 1679 }, // V07
+          { x: -3378, z: 1882 }, // V08
+          { x: -3335, z: 2206 }, // V09
+          { x: -3959, z: 2048 }, // V10
+          { x: -4084, z: 1380 }, // V11
+          { x: -3729, z: 789 }, // V12
+          { x: -3389, z: 576 }, // A01
+          { x: -3302, z: 596 }, // A02
+          { x: -3103, z: 724 }, // A03
+          { x: -2951, z: 736 }, // A04
+          { x: -2586, z: 292 }, // A05
+          { x: -2559, z: 259 }, // A06
+          { x: -2483, z: 253 }, // A07
+          { x: -2440, z: 336 }, // S01
+          { x: -2465, z: 406 }, // S18 západný
+          { x: -2464, z: 593 }, // S17
+          { x: -2459, z: 643 }, // S16
+          { x: -2391, z: 679 }, // S15
+          { x: -2209, z: 764 }, // S14
+          { x: -2197, z: 918 } // S13
+        ]
+      },
+
+      faersia: {
+        name: "Faersia",
+        stateId: "valkyria",
+        label: { x: -3027, z: 53 },
+        points: [
+          { x: -3729, z: 789 }, // V12
+          { x: -4590, z: -285 }, // V13
+          { x: -4530, z: -424 }, // A17
+          { x: -4309, z: -713 }, // A16
+          { x: -3601, z: -520 }, // A15
+          { x: -3271, z: -446 }, // A14
+          { x: -3245, z: -346 }, // A13
+          { x: -3117, z: -287 }, // A12
+          { x: -2669, z: -297 }, // A11
+          { x: -2358, z: -207 }, // A10
+          { x: -2175, z: -180 }, // A09
+          { x: -2033, z: -9 }, // A08
+          { x: -1975, z: 143 }, // S3
+          { x: -2184, z: 167 }, // S2
+          { x: -2440, z: 336 }, // S01
+          { x: -2483, z: 253 }, // A07
+          { x: -2559, z: 259 }, // A06
+          { x: -2586, z: 292 }, // A05
+          { x: -2951, z: 736 }, // A04
+          { x: -3103, z: 724 }, // A03
+          { x: -3302, z: 596 }, // A02
+          { x: -3389, z: 576 } // A01
+        ]
+      },
+
+      ardesa: {
+        name: "Ardesa",
+        stateId: "valkyria",
+        label: { x: -2353, z: -826 },
+        points: [
+          { x: -3601, z: -520 }, // A15
+          { x: -3271, z: -446 }, // A14
+          { x: -3245, z: -346 }, // A13
+          { x: -3117, z: -287 }, // A12
+          { x: -2669, z: -297 }, // A11
+          { x: -2358, z: -207 }, // A10
+          { x: -2175, z: -180 }, // A09
+          { x: -1900, z: -737 }, // A27
+          { x: -1379, z: -720 }, // A28
+          { x: -1520, z: -850 }, // A29
+          { x: -1595, z: -1010 }, // A30
+          { x: -1696, z: -1031 }, // A31
+          { x: -1794, z: -956 }, // A32
+          { x: -1844, z: -1022 }, // A33
+          { x: -1823, z: -1152 }, // A34
+          { x: -1676, z: -1468 }, // A35
+          { x: -1649, z: -1672 }, // A36
+          { x: -2657, z: -1668 }, // A37
+          { x: -3418, z: -1355 }, // A19
+          { x: -3676, z: -601 } // A18
+        ]
+      },
+
+      radial: {
+        name: "Radial",
+        stateId: "valkyria",
+        label: { x: -4530, z: -781 },
+        points: [
+          { x: -3601, z: -520 }, // A15
+          { x: -4309, z: -713 }, // A16
+          { x: -4530, z: -424 }, // A17
+          { x: -4590, z: -285 }, // V13
+          { x: -4777, z: -315 }, // V14
+          { x: -5127, z: -397 }, // V15
+          { x: -5712, z: -222 }, // V16
+          { x: -5672, z: -1227 }, // A22
+          { x: -5086, z: -1834 }, // A21
+          { x: -3859, z: -1482 }, // A20
+          { x: -3418, z: -1355 }, // A19
+          { x: -3676, z: -601 } // A18
+        ]
+      },
+
+      dauland: {
+        name: "Dauland",
+        stateId: "valkyria",
+        label: { x: -6415, z: -1400 },
+        points: [
+          { x: -7500, z: 653 }, // V17
+          { x: -5712, z: -222 }, // V16
+          { x: -5672, z: -1227 }, // A22
+          { x: -5919, z: -1323 }, // A23
+          { x: -5917, z: -2342 }, // A24
+          { x: -6686, z: -2717 }, // A25
+          { x: -7500, z: -2619 } // A26
+        ]
+      },
+
+      oceanic: {
+        name: "Oceanic",
+        stateId: "valkyria",
+        label: { x: -2625, z: -2117 },
+        points: [
+          { x: -3859, z: -1482 }, // A20
+          { x: -3418, z: -1355 }, // A19
+          { x: -2657, z: -1668 }, // A37
+          { x: -1649, z: -1672 }, // A36
+          { x: -1212, z: -2380 }, // A38
+          { x: -2503, z: -3080 }, // A39
+          { x: -2510, z: -2727 }, // A40
+          { x: -3192, z: -2574 } // A41
+        ]
+      },
+
+      mycelium: {
+        name: "Mycelium",
+        stateId: "valkyria",
+        label: { x: -6327, z: -4140 },
+        points: [
+          { x: -7500, z: -2619 }, // A26
+          { x: -6686, z: -2717 }, // A25
+          { x: -5917, z: -2342 }, // A24
+          { x: -5345, z: -3837 }, // A48
+          { x: -5383, z: -4202 }, // A49
+          { x: -5700, z: -4179 }, // A50
+          { x: -6026, z: -4243 }, // A51
+          { x: -6261, z: -5298 }, // A52
+          { x: -6582, z: -5249 }, // A53
+          { x: -6700, z: -5552 }, // A54
+          { x: -7500, z: -5301 } // A55
+        ]
+      },
+
+      sirus: {
+        name: "Sirus",
+        stateId: "valkyria",
+        label: { x: -4758, z: -2875 },
+        points: [
+          { x: -5917, z: -2342 }, // A24
+          { x: -5919, z: -1323 }, // A23
+          { x: -5672, z: -1227 }, // A22
+          { x: -5086, z: -1834 }, // A21
+          { x: -3859, z: -1482 }, // A20
+          { x: -3192, z: -2574 }, // A41
+          { x: -3964, z: -3371 }, // A42
+          { x: -4092, z: -3868 }, // A43
+          { x: -4335, z: -3768 }, // A44
+          { x: -4518, z: -3953 }, // A45
+          { x: -4939, z: -3954 }, // A46
+          { x: -5010, z: -3837 }, // A47
+          { x: -5345, z: -3837 } // A48
+        ]
+      }
+    };
+
+    // ===== MESTÁ =====
+    // Každé mesto má regionId natvrdo.
+    const cities = [
+      {
+        name: "Centraltown",
+        x: -1937,
+        z: 266,
+        type: "Mesto",
+        regionId: "spawnPlain",
+        minZoom: -2
+      },
+      {
+        name: "Nayray",
+        x: -1533,
+        z: 422,
+        type: "Mesto",
+        regionId: "centralLand",
+        minZoom: -2
+      },
+      {
+        name: "Riverend",
+        x: -2396,
+        z: 622,
+        type: "Mesto",
+        regionId: "spawnPlain",
+        minZoom: -2
+      },
+      {
+        name: "Havran",
+        x: -1461,
+        z: 221,
+        type: "Mesto",
+        regionId: "centralLand",
+        minZoom: -2
+      },
+      {
+        name: "Spawn City",
+        x: -1774,
+        z: 813,
+        type: "Mesto",
+        regionId: "spawnVillage",
+        minZoom: -2
+      }
+    ];
+
+    // ===== ŠTRUKTÚRY =====
+    // Každá štruktúra má regionId natvrdo.
+    const structures = [
+      {
+        name: "Riverwatch",
+        x: -2432,
+        z: 486,
+        type: "Štruktúra",
+        regionId: "spawnPlain",
+        minZoom: -2
+      },
+      {
+        name: "Small Skyline",
+        x: -1969,
+        z: 833,
+        type: "Štruktúra",
+        regionId: "spawnVillage",
+        minZoom: -2
+      },
+      {
+        name: "Skyline",
+        x: -2081,
+        z: 848,
+        type: "Štruktúra",
+        regionId: "spawnVillage",
+        minZoom: -2
+      },
+      {
+        name: "The Dark Kingdom",
+        x: -2096,
+        z: 244,
+        type: "Štruktúra",
+        regionId: "spawnPlain",
+        minZoom: -2
+      },
+      {
+        name: "Willie",
+        x: -1583,
+        z: 447,
+        type: "Štruktúra",
+        regionId: "centralLand",
+        minZoom: -2
+      },
+      {
+        name: "Millie",
+        x: -2015,
+        z: 449,
+        type: "Štruktúra",
+        regionId: "spawnPlain",
+        minZoom: -2
+      }
+    ];
+
+    // ===== VRSTVY =====
+    const stateBordersLayer = L.layerGroup().addTo(map);
+    const regionsLayer = L.layerGroup().addTo(map);
+    const regionLabelsLayer = L.layerGroup().addTo(map);
+    const citiesLayer = L.layerGroup().addTo(map);
+    const structuresLayer = L.layerGroup().addTo(map);
+
+    // ===== IKONY =====
+    const cityIcon = L.divIcon({
+      className: "",
+      html: `<div class="pixel-marker marker-city"></div>`,
+      iconSize: [18, 24],
+      iconAnchor: [9, 24],
+      popupAnchor: [0, -20]
+    });
+
+    const structureIcon = L.divIcon({
+      className: "",
+      html: `<div class="pixel-marker marker-structure"></div>`,
+      iconSize: [18, 24],
+      iconAnchor: [9, 24],
+      popupAnchor: [0, -20]
+    });
+
+    // ===== POMOCNÉ FUNKCIE =====
+    function isChecked(id) {
+      return document.getElementById(id).checked;
+    }
+
+    function getRegion(regionId) {
+      return regions[regionId] || null;
+    }
+
+    function getStateByRegionId(regionId) {
+      const region = getRegion(regionId);
+      if (!region) return null;
+      return states[region.stateId] || null;
+    }
+
+    function getRegionName(regionId) {
+      const region = getRegion(regionId);
+      return region ? region.name : "Neznámy región";
+    }
+
+    function getStateNameByRegionId(regionId) {
+      const state = getStateByRegionId(regionId);
+      return state ? state.name : "Neznámy štát";
+    }
+
+    function clearLayers() {
+      stateBordersLayer.clearLayers();
+      regionsLayer.clearLayers();
+      regionLabelsLayer.clearLayers();
+      citiesLayer.clearLayers();
+      structuresLayer.clearLayers();
+    }
+
+    function findRegionByManualPoint(x, z) {
+      // Toto je len informačné na kliknutie do mapy.
+      // Nepoužíva sa na priraďovanie miest ani štruktúr.
+      return null;
+    }
+
+    // ===== RENDER =====
+    function renderRegions() {
+      for (const regionId in regions) {
+        const region = regions[regionId];
+        const state = states[region.stateId];
+        const color = state ? state.color : "#ffffff";
+        const latlngs = region.points.map(p => mcToPixel(p.x, p.z));
+
+        if (isChecked("toggleStates")) {
+          L.polygon(latlngs, {
+            color: color,
+            weight: 7,
+            fillOpacity: 0,
+            opacity: 0.95
+          }).addTo(stateBordersLayer);
+        }
+
+        if (isChecked("toggleRegions")) {
+          const polygon = L.polygon(latlngs, {
+            color: color,
+            weight: 2,
+            fillOpacity: 0,
+            opacity: 0.95
+          });
+
+        polygon.on("click", function(e) {
+          L.DomEvent.stopPropagation(e);
+
+  const mc = pixelToMc(
+    e.latlng.lat,
+    e.latlng.lng
+  );
+
+  L.popup()
+    .setLatLng(e.latlng)
+    .setContent(`
+      <b>${region.name}</b><br>
+      Štát: ${state ? state.name : "Neznámy štát"}<br><br>
+      X: ${mc.x}<br>
+      Z: ${mc.z}
+    `)
+    .openOn(map);
+
+});
+
+          polygon.addTo(regionsLayer);
+        }
+
+        if (isChecked("toggleRegionLabels") && region.label) {
+          L.marker(mcToPixel(region.label.x, region.label.z), {
+            icon: L.divIcon({
+              className: "",
+              html: `<div class="region-label">${region.name}</div>`,
+              iconSize: [220, 28],
+              iconAnchor: [110, 14]
+            }),
+            interactive: false
+          }).addTo(regionLabelsLayer);
+        }
+      }
+    }
+
+    function renderCities() {
+      if (!isChecked("toggleCities")) return;
+
+      cities.forEach(city => {
+        const marker = L.marker(mcToPixel(city.x, city.z), { icon: cityIcon });
+
+        marker.bindPopup(`
+          <b>${city.name}</b><br>
+          Typ: ${city.type}<br>
+          Región: ${getRegionName(city.regionId)}<br>
+          Štát: ${getStateNameByRegionId(city.regionId)}<br>
+          X: ${city.x}<br>
+          Z: ${city.z}
+        `);
+
+        marker.addTo(citiesLayer);
+      });
+    }
+
+    function renderStructures() {
+      if (!isChecked("toggleStructures")) return;
+
+      structures.forEach(structure => {
+        const marker = L.marker(mcToPixel(structure.x, structure.z), { icon: structureIcon });
+
+        marker.bindPopup(`
+          <b>${structure.name}</b><br>
+          Typ: ${structure.type}<br>
+          Región: ${getRegionName(structure.regionId)}<br>
+          Štát: ${getStateNameByRegionId(structure.regionId)}<br>
+          X: ${structure.x}<br>
+          Z: ${structure.z}
+        `);
+
+        marker.addTo(structuresLayer);
+      });
+    }
+
+    function renderAll() {
+      clearLayers();
+      renderRegions();
+      renderCities();
+      renderStructures();
+    }
+
+    // ===== KLIK NA MAPU =====
+    let searchMarker = null;
 
     map.on("click", function(e) {
       const mc = pixelToMc(e.latlng.lat, e.latlng.lng);
 
       document.getElementById("clickedCoords").innerHTML =
-        `<strong>Posledný klik:</strong><br>X: ${mc.x}<br>Z: ${mc.z}`;
+        `<strong>Posledný klik:</strong><br>
+         X: ${mc.x}<br>
+         Z: ${mc.z}`;
 
       if (searchMarker) map.removeLayer(searchMarker);
 
       searchMarker = L.marker(e.latlng).addTo(map)
-        .bindPopup(`X: ${mc.x}<br>Z: ${mc.z}`)
+        .bindPopup(`
+          X: ${mc.x}<br>
+          Z: ${mc.z}
+        `)
         .openPopup();
     });
 
@@ -194,6 +832,14 @@ for (let y = 0; y < tileCount; y++) {
     document.getElementById("resetView").addEventListener("click", function() {
       map.fitBounds(bounds);
     });
+
+    document.getElementById("toggleStates").addEventListener("change", renderAll);
+    document.getElementById("toggleRegions").addEventListener("change", renderAll);
+    document.getElementById("toggleRegionLabels").addEventListener("change", renderAll);
+    document.getElementById("toggleCities").addEventListener("change", renderAll);
+    document.getElementById("toggleStructures").addEventListener("change", renderAll);
+
+    renderAll();
   </script>
 </body>
 </html>
