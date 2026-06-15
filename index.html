@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Modserver 3 mapa</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
   <style>
@@ -84,9 +83,9 @@
       line-height: 1.5;
     }
 
-    .region-label,
-    .state-label {
+    .region-label {
       color: white;
+      font-size: 17px;
       font-weight: bold;
       text-shadow:
         2px 2px 0 rgba(0,0,0,0.75),
@@ -95,16 +94,6 @@
         -1px 1px 0 rgba(0,0,0,0.75);
       white-space: nowrap;
       pointer-events: none;
-    }
-
-    .region-label {
-      font-size: 17px;
-    }
-
-    .state-label {
-      font-size: 26px;
-      text-transform: uppercase;
-      letter-spacing: 2px;
     }
 
     .pixel-marker {
@@ -154,10 +143,10 @@
     <h2>Modserver 3 mapa</h2>
 
     <label>Minecraft X</label>
-    <input id="coordX" type="number" placeholder="napr. 1200">
+    <input id="coordX" type="number" placeholder="napr. -1774">
 
     <label>Minecraft Z</label>
-    <input id="coordZ" type="number" placeholder="napr. -3400">
+    <input id="coordZ" type="number" placeholder="napr. 813">
 
     <button id="goToCoords">Prejsť na súradnice</button>
     <button id="resetView">Reset pohľadu</button>
@@ -182,21 +171,21 @@
 
   <script>
     // ===== MAPA / TILES =====
-   const imageWidth = 15104;
-const imageHeight = 15104;
+    const imageWidth = 15104;
+    const imageHeight = 15104;
 
-const tileSize = 256;
-const tileCount = 59;
+    const tileSize = 256;
+    const tileCount = 59;
 
-// skutočná Xaero mapa bez čierneho okraja
-const mapContentWidth = 15008;
-const mapContentHeight = 15008;
-const mapPadding = 48;
+    // Skutočná mapa má 15008 px, potom si pridal čierny okraj 48 px z každej strany.
+    const mapContentWidth = 15008;
+    const mapContentHeight = 15008;
+    const mapPadding = 48;
 
-const mcMinX = -7504;
-const mcMaxX = 7503;
-const mcMinZ = -7504;
-const mcMaxZ = 7503;
+    const mcMinX = -7504;
+    const mcMaxX = 7503;
+    const mcMinZ = -7504;
+    const mcMaxZ = 7503;
 
     const bounds = [[0, 0], [imageHeight, imageWidth]];
 
@@ -210,6 +199,7 @@ const mcMaxZ = 7503;
       maxBoundsViscosity: 1.0
     });
 
+    // Dlaždice. Y je otočené správne.
     for (let y = 0; y < tileCount; y++) {
       for (let x = 0; x < tileCount; x++) {
         const top = y * tileSize;
@@ -226,27 +216,31 @@ const mcMaxZ = 7503;
 
     map.fitBounds(bounds);
 
-    // ===== KONVERZIA MC <-> PIXEL =====
-function mcToPixel(x, z) {
-  const px = mapPadding + ((x - mcMinX) / (mcMaxX - mcMinX)) * mapContentWidth;
-  const py = mapPadding + ((mcMaxZ - z) / (mcMaxZ - mcMinZ)) * mapContentHeight;
-  return [py, px];
-}
+    // ===== PREVOD MC SÚRADNÍC =====
+    function mcToPixel(x, z) {
+      const px = mapPadding + ((x - mcMinX) / (mcMaxX - mcMinX)) * mapContentWidth;
+      const py = mapPadding + ((mcMaxZ - z) / (mcMaxZ - mcMinZ)) * mapContentHeight;
+      return [py, px];
+    }
 
-function pixelToMc(py, px) {
-  const x = Math.round(
-    mcMinX + ((px - mapPadding) / mapContentWidth) * (mcMaxX - mcMinX)
-  );
+    function pixelToMc(py, px) {
+      const x = Math.round(
+        mcMinX + ((px - mapPadding) / mapContentWidth) * (mcMaxX - mcMinX)
+      );
 
-  const z = Math.round(
-    mcMaxZ - ((py - mapPadding) / mapContentHeight) * (mcMaxZ - mcMinZ)
-  );
+      const z = Math.round(
+        mcMaxZ - ((py - mapPadding) / mapContentHeight) * (mcMaxZ - mcMinZ)
+      );
 
-  return { x, z };
-}
+      return { x, z };
+    }
 
     // ===== ŠTÁTY =====
     const states = {
+      neutral: {
+        name: "Neutrálna oblasť",
+        color: "#9a9a9a"
+      },
       valkyria: {
         name: "Valkýria",
         color: "#c1121f"
@@ -258,176 +252,166 @@ function pixelToMc(py, px) {
       norddeutschland: {
         name: "Norddeutschland",
         color: "#2a6fff"
-      },
-      neutral: {
-  name: "Neutrálna oblasť",
-  color: "#9a9a9a"
-}
+      }
     };
 
     // ===== REGIÓNY =====
-    // Ak chceš región presunúť do iného štátu, zmeníš iba stateId.
+    // Keď chceš presunúť región do iného štátu, zmeň iba stateId.
     const regions = {
-spawnPlain: {
-  name: "Spawn Plain",
-  stateId: "neutral",
-  label: { x: -2050, z: 520 },
-  points: [
-    { x: -2391, z: 679 }, // S15
-    { x: -2459, z: 643 }, // S16
-    { x: -2464, z: 593 }, // S17
-    { x: -2465, z: 406 }, // S18 západný
-    { x: -2440, z: 336 }, // S01
-    { x: -2184, z: 167 }, // S2
-    { x: -1975, z: 143 }, // S3
-    { x: -1835, z: 217 }, // S4
-    { x: -1702, z: 326 }, // S5
-    { x: -1645, z: 437 }, // S23
-    { x: -1701, z: 614 }, // S21
-    { x: -1760, z: 680 }, // S20
-    { x: -1990, z: 680 }, // S19
-    { x: -2180, z: 696 }  // S18 severný
-  ]
-},
+      spawnPlain: {
+        name: "Spawn Plain",
+        stateId: "neutral",
+        label: { x: -2050, z: 520 },
+        points: [
+          { x: -2391, z: 679 }, // S15
+          { x: -2459, z: 643 }, // S16
+          { x: -2464, z: 593 }, // S17
+          { x: -2465, z: 406 }, // S18 západný
+          { x: -2440, z: 336 }, // S01
+          { x: -2184, z: 167 }, // S2
+          { x: -1975, z: 143 }, // S3
+          { x: -1835, z: 217 }, // S4
+          { x: -1702, z: 326 }, // S5
+          { x: -1645, z: 437 }, // S23
+          { x: -1701, z: 614 }, // S21
+          { x: -1760, z: 680 }, // S20
+          { x: -1990, z: 680 }, // S19
+          { x: -2180, z: 696 }  // S18 severný
+        ]
+      },
 
-centralLand: {
-  name: "Central Land",
-  stateId: "neutral",
-  label: { x: -1530, z: 410 },
-  points: [
-    { x: -1702, z: 326 }, // S5
-    { x: -1649, z: 247 }, // S6
-    { x: -1448, z: 132 }, // S7
-    { x: -1274, z: 337 }, // S8
-    { x: -1392, z: 347 }, // S9
-    { x: -1457, z: 494 }, // S10
-    { x: -1535, z: 619 }, // S22
-    { x: -1701, z: 614 }, // S21
-    { x: -1645, z: 437 }  // S23
-  ]
-},
+      centralLand: {
+        name: "Central Land",
+        stateId: "neutral",
+        label: { x: -1530, z: 410 },
+        points: [
+          { x: -1702, z: 326 }, // S5
+          { x: -1649, z: 247 }, // S6
+          { x: -1448, z: 132 }, // S7
+          { x: -1274, z: 337 }, // S8
+          { x: -1392, z: 347 }, // S9
+          { x: -1457, z: 494 }, // S10
+          { x: -1535, z: 619 }, // S22
+          { x: -1701, z: 614 }, // S21
+          { x: -1645, z: 437 }  // S23
+        ]
+      },
 
-spawnVillage: {
-  name: "Spawn Village",
-  stateId: "neutral",
-  label: { x: -1900, z: 790 },
-  points: [
-    { x: -1535, z: 619 }, // S22
-    { x: -1701, z: 614 }, // S21
-    { x: -1760, z: 680 }, // S20
-    { x: -1990, z: 680 }, // S19
-    { x: -2180, z: 696 }, // S18 severný
-    { x: -2391, z: 679 }, // S15
-    { x: -2209, z: 764 }, // S14
-    { x: -2197, z: 918 }, // S13
-    { x: -1785, z: 932 }, // S12
-    { x: -1689, z: 880 }  // S11
-  ]
-}
-
-      // Sem budeme pridávať regióny z tvojho súboru POINTS.
+      spawnVillage: {
+        name: "Spawn Village",
+        stateId: "neutral",
+        label: { x: -1900, z: 790 },
+        points: [
+          { x: -1535, z: 619 }, // S22
+          { x: -1701, z: 614 }, // S21
+          { x: -1760, z: 680 }, // S20
+          { x: -1990, z: 680 }, // S19
+          { x: -2180, z: 696 }, // S18 severný
+          { x: -2391, z: 679 }, // S15
+          { x: -2209, z: 764 }, // S14
+          { x: -2197, z: 918 }, // S13
+          { x: -1785, z: 932 }, // S12
+          { x: -1689, z: 880 }  // S11
+        ]
+      }
     };
 
     // ===== MESTÁ =====
-    // Mesto má regionId, nie stateId.
-    // Štát sa dopočíta automaticky cez región.
+    // Každé mesto má regionId natvrdo.
     const cities = [
       {
-  name: "Centraltown",
-  x: -1937,
-  z: 266,
-  type: "Mesto",
-  regionId: "neutralnaOblast",
-  minZoom: -2
-},
-{
-  name: "Nayray",
-  x: -1533,
-  z: 422,
-  type: "Mesto",
-  regionId: "neutralnaOblast",
-  minZoom: -2
-},
-{
-  name: "Riverend",
-  x: -2396,
-  z: 622,
-  type: "Mesto",
-  regionId: "neutralnaOblast",
-  minZoom: -2
-},
-{
-  name: "Havran",
-  x: -1461,
-  z: 221,
-  type: "Mesto",
-  regionId: "neutralnaOblast",
-  minZoom: -2
-},
-{
-  name: "Spawn City",
-  x: -1774,
-  z: 813,
-  type: "Mesto",
-  regionId: "neutralnaOblast",
-  minZoom: -2
-}
-
-      // Sem budeme pridávať mestá zo súboru CITIES.
+        name: "Centraltown",
+        x: -1937,
+        z: 266,
+        type: "Mesto",
+        regionId: "spawnPlain",
+        minZoom: -2
+      },
+      {
+        name: "Nayray",
+        x: -1533,
+        z: 422,
+        type: "Mesto",
+        regionId: "centralLand",
+        minZoom: -2
+      },
+      {
+        name: "Riverend",
+        x: -2396,
+        z: 622,
+        type: "Mesto",
+        regionId: "spawnPlain",
+        minZoom: -2
+      },
+      {
+        name: "Havran",
+        x: -1461,
+        z: 221,
+        type: "Mesto",
+        regionId: "centralLand",
+        minZoom: -2
+      },
+      {
+        name: "Spawn City",
+        x: -1774,
+        z: 813,
+        type: "Mesto",
+        regionId: "spawnVillage",
+        minZoom: -2
+      }
     ];
 
     // ===== ŠTRUKTÚRY =====
+    // Každá štruktúra má regionId natvrdo.
     const structures = [
-     {
-  name: "Riverwatch",
-  x: -2432,
-  z: 486,
-  type: "Štruktúra",
-  regionId: "neutralnaOblast",
-  minZoom: -2
-},
-{
-  name: "Small Skyline",
-  x: -1969,
-  z: 833,
-  type: "Štruktúra",
-  regionId: "neutralnaOblast",
-  minZoom: -2
-},
-{
-  name: "Skyline",
-  x: -2081,
-  z: 848,
-  type: "Štruktúra",
-  regionId: "neutralnaOblast",
-  minZoom: -2
-},
-{
-  name: "The Dark Kingdom",
-  x: -2096,
-  z: 244,
-  type: "Štruktúra",
-  regionId: "neutralnaOblast",
-  minZoom: -2
-},
-{
-  name: "Willie",
-  x: -1583,
-  z: 447,
-  type: "Štruktúra",
-  regionId: "neutralnaOblast",
-  minZoom: -2
-},
-{
-  name: "Millie",
-  x: -2015,
-  z: 449,
-  type: "Štruktúra",
-  regionId: "neutralnaOblast",
-  minZoom: -2
-}
-
-      // Sem budeme pridávať štruktúry zo súboru STRUCTURES.
+      {
+        name: "Riverwatch",
+        x: -2432,
+        z: 486,
+        type: "Štruktúra",
+        regionId: "spawnPlain",
+        minZoom: -2
+      },
+      {
+        name: "Small Skyline",
+        x: -1969,
+        z: 833,
+        type: "Štruktúra",
+        regionId: "spawnVillage",
+        minZoom: -2
+      },
+      {
+        name: "Skyline",
+        x: -2081,
+        z: 848,
+        type: "Štruktúra",
+        regionId: "spawnVillage",
+        minZoom: -2
+      },
+      {
+        name: "The Dark Kingdom",
+        x: -2096,
+        z: 244,
+        type: "Štruktúra",
+        regionId: "spawnPlain",
+        minZoom: -2
+      },
+      {
+        name: "Willie",
+        x: -1583,
+        z: 447,
+        type: "Štruktúra",
+        regionId: "centralLand",
+        minZoom: -2
+      },
+      {
+        name: "Millie",
+        x: -2015,
+        z: 449,
+        type: "Štruktúra",
+        regionId: "spawnPlain",
+        minZoom: -2
+      }
     ];
 
     // ===== VRSTVY =====
@@ -436,14 +420,6 @@ spawnVillage: {
     const regionLabelsLayer = L.layerGroup().addTo(map);
     const citiesLayer = L.layerGroup().addTo(map);
     const structuresLayer = L.layerGroup().addTo(map);
-
-    const allDynamicLayers = [
-      stateBordersLayer,
-      regionsLayer,
-      regionLabelsLayer,
-      citiesLayer,
-      structuresLayer
-    ];
 
     // ===== IKONY =====
     const cityIcon = L.divIcon({
@@ -463,105 +439,52 @@ spawnVillage: {
     });
 
     // ===== POMOCNÉ FUNKCIE =====
-    function getStateByRegion(regionId) {
-      const region = regions[regionId];
+    function isChecked(id) {
+      return document.getElementById(id).checked;
+    }
+
+    function getRegion(regionId) {
+      return regions[regionId] || null;
+    }
+
+    function getStateByRegionId(regionId) {
+      const region = getRegion(regionId);
       if (!region) return null;
       return states[region.stateId] || null;
     }
 
     function getRegionName(regionId) {
-      return regions[regionId]?.name || "Neznámy región";
+      const region = getRegion(regionId);
+      return region ? region.name : "Neznámy región";
     }
 
-    function getStateNameByRegion(regionId) {
-      const state = getStateByRegion(regionId);
+    function getStateNameByRegionId(regionId) {
+      const state = getStateByRegionId(regionId);
       return state ? state.name : "Neznámy štát";
     }
 
-    function getStateColorByRegion(regionId) {
-      const state = getStateByRegion(regionId);
-      return state ? state.color : "#ffffff";
+    function clearLayers() {
+      stateBordersLayer.clearLayers();
+      regionsLayer.clearLayers();
+      regionLabelsLayer.clearLayers();
+      citiesLayer.clearLayers();
+      structuresLayer.clearLayers();
     }
 
-    function isChecked(id) {
-      return document.getElementById(id).checked;
-    }
-
-    function clearDynamicLayers() {
-      allDynamicLayers.forEach(layer => layer.clearLayers());
-    }
-
-    function pointInPolygon(point, polygon) {
-      const x = point.x;
-      const z = point.z;
-      let inside = false;
-
-      for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-        const xi = polygon[i].x;
-        const zi = polygon[i].z;
-        const xj = polygon[j].x;
-        const zj = polygon[j].z;
-
-        const intersect =
-          ((zi > z) !== (zj > z)) &&
-          (x < (xj - xi) * (z - zi) / (zj - zi) + xi);
-
-        if (intersect) inside = !inside;
-      }
-
-      return inside;
-    }
-
-    function findRegionForPoint(x, z) {
-      for (const regionId in regions) {
-        if (pointInPolygon({ x, z }, regions[regionId].points)) {
-          return regionId;
-        }
-      }
+    function findRegionByManualPoint(x, z) {
+      // Toto je len informačné na kliknutie do mapy.
+      // Nepoužíva sa na priraďovanie miest ani štruktúr.
       return null;
     }
 
-    function ensureRegionIdForItems() {
-      cities.forEach(city => {
-        if (!city.regionId) {
-          city.regionId = findRegionForPoint(city.x, city.z);
-        }
-      });
-
-      structures.forEach(structure => {
-        if (!structure.regionId) {
-          structure.regionId = findRegionForPoint(structure.x, structure.z);
-        }
-      });
-    }
-
-    // Touto funkciou vieš presunúť región do iného štátu.
-    // Napr.: changeRegionState("testRegion", "grankolandia")
-    function changeRegionState(regionId, newStateId) {
-      if (!regions[regionId]) {
-        console.warn("Región neexistuje:", regionId);
-        return;
-      }
-
-      if (!states[newStateId]) {
-        console.warn("Štát neexistuje:", newStateId);
-        return;
-      }
-
-      regions[regionId].stateId = newStateId;
-      renderAll();
-    }
-
-    // ===== VYKRESĽOVANIE =====
+    // ===== RENDER =====
     function renderRegions() {
       for (const regionId in regions) {
         const region = regions[regionId];
         const state = states[region.stateId];
         const color = state ? state.color : "#ffffff";
-
         const latlngs = region.points.map(p => mcToPixel(p.x, p.z));
 
-        // Hrubšia štátna hranica pod regiónom
         if (isChecked("toggleStates")) {
           L.polygon(latlngs, {
             color: color,
@@ -571,7 +494,6 @@ spawnVillage: {
           }).addTo(stateBordersLayer);
         }
 
-        // Tenká hranica regiónu
         if (isChecked("toggleRegions")) {
           const polygon = L.polygon(latlngs, {
             color: color,
@@ -590,7 +512,7 @@ spawnVillage: {
         }
 
         if (isChecked("toggleRegionLabels") && region.label) {
-          const label = L.marker(mcToPixel(region.label.x, region.label.z), {
+          L.marker(mcToPixel(region.label.x, region.label.z), {
             icon: L.divIcon({
               className: "",
               html: `<div class="region-label">${region.name}</div>`,
@@ -598,9 +520,7 @@ spawnVillage: {
               iconAnchor: [110, 14]
             }),
             interactive: false
-          });
-
-          label.addTo(regionLabelsLayer);
+          }).addTo(regionLabelsLayer);
         }
       }
     }
@@ -615,7 +535,7 @@ spawnVillage: {
           <b>${city.name}</b><br>
           Typ: ${city.type}<br>
           Región: ${getRegionName(city.regionId)}<br>
-          Štát: ${getStateNameByRegion(city.regionId)}<br>
+          Štát: ${getStateNameByRegionId(city.regionId)}<br>
           X: ${city.x}<br>
           Z: ${city.z}
         `);
@@ -634,7 +554,7 @@ spawnVillage: {
           <b>${structure.name}</b><br>
           Typ: ${structure.type}<br>
           Región: ${getRegionName(structure.regionId)}<br>
-          Štát: ${getStateNameByRegion(structure.regionId)}<br>
+          Štát: ${getStateNameByRegionId(structure.regionId)}<br>
           X: ${structure.x}<br>
           Z: ${structure.z}
         `);
@@ -644,8 +564,7 @@ spawnVillage: {
     }
 
     function renderAll() {
-      clearDynamicLayers();
-      ensureRegionIdForItems();
+      clearLayers();
       renderRegions();
       renderCities();
       renderStructures();
@@ -656,25 +575,18 @@ spawnVillage: {
 
     map.on("click", function(e) {
       const mc = pixelToMc(e.latlng.lat, e.latlng.lng);
-      const regionId = findRegionForPoint(mc.x, mc.z);
-      const regionName = regionId ? getRegionName(regionId) : "Mimo regiónu";
-      const stateName = regionId ? getStateNameByRegion(regionId) : "Mimo štátu";
 
       document.getElementById("clickedCoords").innerHTML =
         `<strong>Posledný klik:</strong><br>
          X: ${mc.x}<br>
-         Z: ${mc.z}<br>
-         Región: ${regionName}<br>
-         Štát: ${stateName}`;
+         Z: ${mc.z}`;
 
       if (searchMarker) map.removeLayer(searchMarker);
 
       searchMarker = L.marker(e.latlng).addTo(map)
         .bindPopup(`
           X: ${mc.x}<br>
-          Z: ${mc.z}<br>
-          Región: ${regionName}<br>
-          Štát: ${stateName}
+          Z: ${mc.z}
         `)
         .openPopup();
     });
@@ -689,21 +601,13 @@ spawnVillage: {
       }
 
       const [py, px] = mcToPixel(x, z);
-      const regionId = findRegionForPoint(x, z);
-      const regionName = regionId ? getRegionName(regionId) : "Mimo regiónu";
-      const stateName = regionId ? getStateNameByRegion(regionId) : "Mimo štátu";
 
       map.setView([py, px], 0);
 
       if (searchMarker) map.removeLayer(searchMarker);
 
       searchMarker = L.marker([py, px]).addTo(map)
-        .bindPopup(`
-          X: ${x}<br>
-          Z: ${z}<br>
-          Región: ${regionName}<br>
-          Štát: ${stateName}
-        `)
+        .bindPopup(`X: ${x}<br>Z: ${z}`)
         .openPopup();
     });
 
