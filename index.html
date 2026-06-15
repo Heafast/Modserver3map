@@ -7,113 +7,6 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
   <style>
-    .list-button {
-  position: fixed;
-  top: 12px;
-  right: 12px;
-  z-index: 1200;
-  background: #2d6cdf;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  padding: 10px 14px;
-  font-size: 14px;
-  cursor: pointer;
-  box-shadow: 0 4px 18px rgba(0,0,0,0.4);
-}
-
-.list-panel {
-  display: none;
-  position: fixed;
-  top: 12px;
-  right: 12px;
-
-  width: 330px;
-  max-height: calc(100vh - 24px);
-
-  overflow: auto;
-
-  background: rgba(20,20,20,0.95);
-
-  border-radius: 12px;
-  padding: 45px 12px 12px 12px;
-
-  z-index: 1100;
-
-  color: white;
-}
-
-.list-panel.open {
-  display: block;
-}
-
-.list-close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-
-  width: 32px;
-  height: 32px;
-
-  border: none;
-  border-radius: 6px;
-
-  background: #444;
-  color: white;
-
-  cursor: pointer;
-  z-index: 9999;
-}
-
-.list-panel details {
-  margin: 8px 0;
-}
-
-.list-panel summary {
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.list-item {
-  margin-left: 16px;
-  padding: 4px 0;
-  cursor: pointer;
-  color: #9fd0ff;
-}
-
-.list-item:hover {
-  text-decoration: underline;
-}
-    .panel {
-  display: none;
-}
-
-.panel.open {
-  display: block;
-}
-
-.mobile-panel-button {
-  position: fixed;
-  top: 12px;
-  left: 12px;
-  z-index: 1200;
-  background: #2d6cdf;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  padding: 10px 14px;
-  font-size: 14px;
-  cursor: pointer;
-  box-shadow: 0 4px 18px rgba(0,0,0,0.4);
-}
-
-.panel-close {
-  float: right;
-  background: #444 !important;
-  width: auto !important;
-  padding: 4px 8px !important;
-  margin-top: 0 !important;
-}
     html, body {
       margin: 0;
       height: 100%;
@@ -242,21 +135,119 @@
     .marker-structure {
       background: #163a70;
     }
+
+    /* ===== MOBILE MENU + ZOZNAM ===== */
+    .panel {
+      display: none;
+    }
+
+    .panel.open {
+      display: block;
+    }
+
+    .mobile-panel-button {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 1200;
+      background: #2d6cdf;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+    }
+
+    .list-button {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 1200;
+      background: #2d6cdf;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+    }
+
+    .list-panel {
+      display: none;
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 1100;
+      width: 330px;
+      max-height: calc(100vh - 24px);
+      overflow: auto;
+      background: rgba(20,20,20,0.95);
+      color: white;
+      padding: 12px;
+      border-radius: 12px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+    }
+
+    .list-panel.open {
+      display: block;
+    }
+
+    .list-panel h2 {
+      margin: 28px 0 10px 0;
+      font-size: 18px;
+    }
+
+    .list-panel details {
+      margin: 8px 0;
+    }
+
+    .list-panel summary {
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .list-item {
+      margin-left: 16px;
+      padding: 4px 0;
+      cursor: pointer;
+      color: #9fd0ff;
+    }
+
+    .list-item:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 700px) {
+      .panel {
+        width: calc(100% - 24px);
+        left: 12px;
+        right: 12px;
+      }
+
+      .list-panel {
+        width: calc(100% - 24px);
+        left: 12px;
+        right: 12px;
+      }
+    }
+
   </style>
 </head>
 
 <body>
+  <button id="togglePanelButton" class="mobile-panel-button">☰ Menu</button>
   <button id="openListButton" class="list-button">📋 Zoznam</button>
 
-<div id="listPanel" class="list-panel">
-  <button id="closeListButton" class="list-close">✕</button>
-  <h2>Zoznam mapy</h2>
-  <div id="mapList"></div>
-</div>
-  <button id="togglePanelButton" class="mobile-panel-button">☰ Menu</button>
-<div class="panel" id="sidePanel">
-  <button id="closePanelButton" class="panel-close">✕</button>
-  <h2>Modserver 3 mapa</h2>
+  <div id="listPanel" class="list-panel">
+    <h2>Zoznam mapy</h2>
+    <div id="mapList"></div>
+  </div>
+
+  <div class="panel" id="sidePanel">
+    <h2>Modserver 3 mapa</h2>
 
     <label>Minecraft X</label>
     <input id="coordX" type="number" placeholder="napr. -1774">
@@ -499,7 +490,7 @@
           { x: -2559, z: 259 }, // A06
           { x: -2483, z: 253 }, // A07
           { x: -2440, z: 336 }, // S01
-          { x: -2465, z: 406 }, // S18 západný
+          { x: -2180, z: 696 }, // S18
           { x: -2464, z: 593 }, // S17
           { x: -2459, z: 643 }, // S16
           { x: -2391, z: 679 }, // S15
@@ -930,6 +921,9 @@
     let searchMarker = null;
 
     map.on("click", function(e) {
+      document.getElementById("sidePanel").classList.remove("open");
+      document.getElementById("listPanel").classList.remove("open");
+
       const mc = pixelToMc(e.latlng.lat, e.latlng.lng);
 
       document.getElementById("clickedCoords").innerHTML =
@@ -976,127 +970,141 @@
     document.getElementById("toggleRegionLabels").addEventListener("change", renderAll);
     document.getElementById("toggleCities").addEventListener("change", renderAll);
     document.getElementById("toggleStructures").addEventListener("change", renderAll);
+
+
+    // ===== OTVÁRANIE / ZATVÁRANIE MENU A ZOZNAMU =====
     document.getElementById("togglePanelButton").addEventListener("click", function() {
-  document.getElementById("sidePanel").classList.add("open");
-});
+      const panel = document.getElementById("sidePanel");
+      const listPanel = document.getElementById("listPanel");
 
-document.getElementById("closePanelButton").addEventListener("click", function() {
-  document.getElementById("sidePanel").classList.remove("open");
-});
+      if (panel.classList.contains("open")) {
+        panel.classList.remove("open");
+      } else {
+        listPanel.classList.remove("open");
+        panel.classList.add("open");
+      }
+    });
+
+    document.getElementById("openListButton").addEventListener("click", function() {
+      const panel = document.getElementById("listPanel");
+      const sidePanel = document.getElementById("sidePanel");
+
+      if (panel.classList.contains("open")) {
+        panel.classList.remove("open");
+      } else {
+        sidePanel.classList.remove("open");
+        buildMapList();
+        panel.classList.add("open");
+      }
+    });
+
     function goToItem(x, z, zoom = 0) {
-  const [py, px] = mcToPixel(x, z);
-  map.setView([py, px], zoom);
+      const [py, px] = mcToPixel(x, z);
+      map.setView([py, px], zoom);
 
-  if (searchMarker) map.removeLayer(searchMarker);
+      if (searchMarker) map.removeLayer(searchMarker);
 
-  searchMarker = L.marker([py, px]).addTo(map)
-    .bindPopup(`X: ${x}<br>Z: ${z}`)
-    .openPopup();
-}
-
-function getRegionCenter(region) {
-  let sumX = 0;
-  let sumZ = 0;
-
-  region.points.forEach(p => {
-    sumX += p.x;
-    sumZ += p.z;
-  });
-
-  return {
-    x: Math.round(sumX / region.points.length),
-    z: Math.round(sumZ / region.points.length)
-  };
-}
-
-function buildMapList() {
-  const container = document.getElementById("mapList");
-  container.innerHTML = "";
-
-  for (const stateId in states) {
-    const state = states[stateId];
-
-    const stateDetails = document.createElement("details");
-    stateDetails.innerHTML = `<summary>${state.name}</summary>`;
-
-    for (const regionId in regions) {
-      const region = regions[regionId];
-
-      if (region.stateId !== stateId) continue;
-
-      const regionDetails = document.createElement("details");
-      regionDetails.style.marginLeft = "12px";
-
-      const center = getRegionCenter(region);
-
-      regionDetails.innerHTML = `
-        <summary>${region.name}</summary>
-        <div class="list-item" data-x="${center.x}" data-z="${center.z}">
-          ➜ Prejsť na región
-        </div>
-      `;
-
-      const regionCities = cities.filter(c => c.regionId === regionId);
-      const regionStructures = structures.filter(s => s.regionId === regionId);
-
-      if (regionCities.length > 0) {
-        const citiesBlock = document.createElement("details");
-        citiesBlock.style.marginLeft = "18px";
-        citiesBlock.innerHTML = `<summary>Mestá</summary>`;
-
-        regionCities.forEach(city => {
-          const div = document.createElement("div");
-          div.className = "list-item";
-          div.textContent = city.name;
-          div.dataset.x = city.x;
-          div.dataset.z = city.z;
-          citiesBlock.appendChild(div);
-        });
-
-        regionDetails.appendChild(citiesBlock);
-      }
-
-      if (regionStructures.length > 0) {
-        const structuresBlock = document.createElement("details");
-        structuresBlock.style.marginLeft = "18px";
-        structuresBlock.innerHTML = `<summary>Štruktúry</summary>`;
-
-        regionStructures.forEach(structure => {
-          const div = document.createElement("div");
-          div.className = "list-item";
-          div.textContent = structure.name;
-          div.dataset.x = structure.x;
-          div.dataset.z = structure.z;
-          structuresBlock.appendChild(div);
-        });
-
-        regionDetails.appendChild(structuresBlock);
-      }
-
-      stateDetails.appendChild(regionDetails);
+      searchMarker = L.marker([py, px]).addTo(map)
+        .bindPopup(`X: ${x}<br>Z: ${z}`)
+        .openPopup();
     }
 
-    container.appendChild(stateDetails);
-  }
+    function getRegionCenter(region) {
+      let sumX = 0;
+      let sumZ = 0;
 
-  container.querySelectorAll(".list-item").forEach(item => {
-    item.addEventListener("click", function() {
-      const x = parseInt(this.dataset.x, 10);
-      const z = parseInt(this.dataset.z, 10);
-      goToItem(x, z, 0);
-      document.getElementById("listPanel").classList.remove("open");
-    });
-  });
-}
+      region.points.forEach(p => {
+        sumX += p.x;
+        sumZ += p.z;
+      });
 
-document.getElementById("openListButton").addEventListener("click", function() {
-  document.getElementById("listPanel").classList.add("open");
-  buildMapList();
-});
+      return {
+        x: Math.round(sumX / region.points.length),
+        z: Math.round(sumZ / region.points.length)
+      };
+    }
 
-document.getElementById("closeListButton").addEventListener("click", function() {
-  document.getElementById("listPanel").classList.remove("open");
-});
+    function buildMapList() {
+      const container = document.getElementById("mapList");
+      container.innerHTML = "";
+
+      for (const stateId in states) {
+        const state = states[stateId];
+
+        const stateDetails = document.createElement("details");
+        stateDetails.innerHTML = `<summary>${state.name}</summary>`;
+
+        for (const regionId in regions) {
+          const region = regions[regionId];
+
+          if (region.stateId !== stateId) continue;
+
+          const regionDetails = document.createElement("details");
+          regionDetails.style.marginLeft = "12px";
+
+          const center = getRegionCenter(region);
+
+          regionDetails.innerHTML = `
+            <summary>${region.name}</summary>
+            <div class="list-item" data-x="${center.x}" data-z="${center.z}">
+              ➜ Prejsť na región
+            </div>
+          `;
+
+          const regionCities = cities.filter(c => c.regionId === regionId);
+          const regionStructures = structures.filter(s => s.regionId === regionId);
+
+          if (regionCities.length > 0) {
+            const citiesBlock = document.createElement("details");
+            citiesBlock.style.marginLeft = "18px";
+            citiesBlock.innerHTML = `<summary>Mestá</summary>`;
+
+            regionCities.forEach(city => {
+              const div = document.createElement("div");
+              div.className = "list-item";
+              div.textContent = city.name;
+              div.dataset.x = city.x;
+              div.dataset.z = city.z;
+              citiesBlock.appendChild(div);
+            });
+
+            regionDetails.appendChild(citiesBlock);
+          }
+
+          if (regionStructures.length > 0) {
+            const structuresBlock = document.createElement("details");
+            structuresBlock.style.marginLeft = "18px";
+            structuresBlock.innerHTML = `<summary>Štruktúry</summary>`;
+
+            regionStructures.forEach(structure => {
+              const div = document.createElement("div");
+              div.className = "list-item";
+              div.textContent = structure.name;
+              div.dataset.x = structure.x;
+              div.dataset.z = structure.z;
+              structuresBlock.appendChild(div);
+            });
+
+            regionDetails.appendChild(structuresBlock);
+          }
+
+          stateDetails.appendChild(regionDetails);
+        }
+
+        container.appendChild(stateDetails);
+      }
+
+      container.querySelectorAll(".list-item").forEach(item => {
+        item.addEventListener("click", function() {
+          const x = parseInt(this.dataset.x, 10);
+          const z = parseInt(this.dataset.z, 10);
+
+          goToItem(x, z, 0);
+          document.getElementById("listPanel").classList.remove("open");
+          document.getElementById("sidePanel").classList.remove("open");
+        });
+      });
+    }
 
     renderAll();
   </script>
