@@ -503,6 +503,7 @@
           });
 
         polygon.on("click", function(e) {
+          L.DomEvent.stopPropagation(e);
 
   const mc = pixelToMc(
     e.latlng.lat,
