@@ -1002,7 +1002,7 @@ ilander: {
   ]
 },
 
-frostdorf: {
+Frostdorf: {
   name: "Frostdorf",
   stateId: "valkyria",
   label: { x: -2500, z: -3850 },
@@ -1073,7 +1073,61 @@ eriaCity: {
 
     // ===== MESTÁ =====
     // Každé mesto má regionId natvrdo.
-    const cities = [];
+    const cities = [
+  { name:"Pearl fleet", x:-7303, z:-2135, type:"Mesto", regionId:"dauland" },
+  { name:"Icend", x:1888, z:-7145, type:"Mesto", regionId:"montania" },
+  { name:"Virania", x:594, z:-6632, type:"Mesto", regionId:"meris" },
+  { name:"Meadow", x:1597, z:-6642, type:"Mesto", regionId:"meris" },
+  { name:"Staria", x:1359, z:-6639, type:"Mesto", regionId:"meris" },
+  { name:"Las fleet", x:-7336, z:-6697, type:"Mesto", regionId:"odeos" },
+  { name:"Nordica fleet", x:-3914, z:-7289, type:"Mesto", regionId:"firia" },
+  { name:"Blocar fleet", x:-6919, z:-2746, type:"Mesto", regionId:"dauland" },
+  { name:"Mush fleet", x:-6904, z:-4537, type:"Mesto", regionId:"mycelium" },
+  { name:"Traven fleet", x:1207, z:-4904, type:"Mesto", regionId:"noria" },
+  { name:"Ascera fleet", x:-3943, z:-6826, type:"Mesto", regionId:"astralix" },
+  { name:"Defia fleet", x:-4457, z:-6842, type:"Mesto", regionId:"firia" },
+  { name:"Aleos fleet", x:-6296, z:-3271, type:"Mesto", regionId:"mycelium" },
+  { name:"Folis fleet", x:-6250, z:-6057, type:"Mesto", regionId:"rinius" },
+  { name:"Himmel", x:-2252, z:-6692, type:"Mesto", regionId:"astralix" },
+  { name:"World End", x:-1885, z:-6710, type:"Mesto", regionId:"astralix" },
+  { name:"Gateway", x:-5019, z:-2847, type:"Mesto", regionId:"sirus" },
+  { name:"Norflans fleet", x:-5528, z:-5768, type:"Mesto", regionId:"rinius" },
+  { name:"Darkville", x:-3317, z:-613, type:"Mesto", regionId:"faersia" },
+  { name:"Bridges", x:-1495, z:-1012, type:"Mesto", regionId:"intora" },
+  { name:"Indersa", x:-938, z:-512, type:"Mesto", regionId:"faersia" },
+  { name:"Greens", x:-2377, z:-565, type:"Mesto", regionId:"ardesa" },
+  { name:"Beverlive", x:-3286, z:261, type:"Mesto", regionId:"amwark" },
+  { name:"Siluria", x:-1513, z:-366, type:"Mesto", regionId:"faersia" },
+  { name:"Seasons fleet", x:745, z:-2663, type:"Mesto", regionId:"rivis" },
+  { name:"Masks fleet", x:-1014, z:-2745, type:"Mesto", regionId:"nelifios" },
+  { name:"Taris fleet", x:167, z:-3287, type:"Mesto", regionId:"rivis" },
+  { name:"Mandala fleet", x:-393, z:-1672, type:"Mesto", regionId:"intora" },
+  { name:"Darius fleet", x:-2072, z:-4437, type:"Mesto", regionId:"ilander" },
+  { name:"Follower fleet", x:-3398, z:-4071, type:"Mesto", regionId:"eria" },
+  { name:"The Lighthouse", x:-4458, z:-2746, type:"Mesto", regionId:"sirus" },
+  { name:"Valkara", x:-5050, z:-4533, type:"Mesto", regionId:"veslan" },
+  { name:"Taina fleet", x:-4409, z:-1081, type:"Mesto", regionId:"radial" },
+  { name:"Alec fleet", x:-3977, z:-857, type:"Mesto", regionId:"radial" },
+  { name:"Stephard fleet", x:-4439, z:-343, type:"Mesto", regionId:"radial" },
+  { name:"Tandius fleet", x:-3911, z:231, type:"Mesto", regionId:"faersia" },
+  { name:"Onso fleet", x:-4503, z:-4901, type:"Mesto", regionId:"veslan" },
+  { name:"Mezius fleet", x:-3880, z:-3352, type:"Mesto", regionId:"eria" },
+  { name:"Coporis", x:-2789, z:757, type:"Mesto", regionId:"amwark" },
+  { name:"Greenville", x:-3339, z:1323, type:"Mesto", regionId:"amwark" },
+  { name:"Soulsas", x:-984, z:37, type:"Mesto", regionId:"faersia" },
+  { name:"Rome", x:-646, z:-664, type:"Mesto", regionId:"faersia" },
+  { name:"Hondius fleet", x:-599, z:-3816, type:"Mesto", regionId:"nelifios" },
+  { name:"Lakwa fleet", x:-953, z:-5559, type:"Mesto", regionId:"ilander" },
+  { name:"Iceman fleet", x:-3993, z:-4486, type:"Mesto", regionId:"veslan" },
+  { name:"Tennessee fleet", x:-1672, z:-2106, type:"Mesto", regionId:"intora" },
+  { name:"Fing fleet", x:-5064, z:-1141, type:"Mesto", regionId:"radial" },
+  { name:"Canavia", x:-2364, z:-3968, type:"Mesto", regionId:"Himmels" },
+  { name:"Hantas", x:-2204, z:-3595, type:"Mesto", regionId:"Himmels" },
+  { name:"The Library", x:-2849, z:-609, type:"Mesto", regionId:"ardesa" },
+  { name:"Cliffside", x:-6531, z:-1796, type:"Mesto", regionId:"dauland" },
+  { name:"Portland", x:-3117, z:-3635, type:"Mesto", regionId:"eria" },
+  { name:"Éria", x:-2809, z:-3835, type:"Mesto", regionId:"eriaCity" }
+];
 
     // ===== ŠTRUKTÚRY =====
     // Každá štruktúra má regionId natvrdo.
