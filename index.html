@@ -365,6 +365,7 @@
 
     map.on("zoomend", function() {
       loadTileLevel(getBestTileLevel());
+      renderAll();
     });
 
     // ===== PREVOD MC SÚRADNÍC =====
@@ -1069,6 +1070,10 @@ eriaCity: {
 }
     };
 
+    // ===== MESTÁ =====
+    // Každé mesto má regionId natvrdo.
+    const cities = [];
+
     // ===== ŠTRUKTÚRY =====
     // Každá štruktúra má regionId natvrdo.
     const structures = [
@@ -1180,20 +1185,22 @@ eriaCity: {
     }
 
     function findRegionByManualPoint(x, z) {
-      const ZOOM_VISIBILITY = {
-  stateBorders: -5,
-  regions: -2.75,
-  regionLabels: -1.75,
-  cities: -1.5,
-  structures: -1.0
-};
-
-function zoomVisible(minZoom) {
-  return map.getZoom() >= minZoom;
-}
       // Toto je len informačné na kliknutie do mapy.
       // Nepoužíva sa na priraďovanie miest ani štruktúr.
       return null;
+    }
+
+    // ===== VIDITEĽNOSŤ PODĽA ZOOMU =====
+    const ZOOM_VISIBILITY = {
+      stateBorders: -5,
+      regions: -2.5,
+      regionLabels: -1.5,
+      cities: -0.5,
+      structures: 0
+    };
+
+    function zoomVisible(minZoom) {
+      return map.getZoom() >= minZoom;
     }
 
     // ===== RENDER =====
@@ -1204,7 +1211,7 @@ function zoomVisible(minZoom) {
         const color = state ? state.color : "#ffffff";
         const latlngs = region.points.map(p => mcToPixel(p.x, p.z));
 
-        if (isChecked("toggleStates")) {
+        if (isChecked("toggleStates") && zoomVisible(ZOOM_VISIBILITY.stateBorders)) {
           L.polygon(latlngs, {
             color: color,
             weight: 7,
@@ -1213,7 +1220,7 @@ function zoomVisible(minZoom) {
           }).addTo(stateBordersLayer);
         }
 
-        if (isChecked("toggleRegions")) {
+        if (isChecked("toggleRegions") && zoomVisible(ZOOM_VISIBILITY.regions)) {
           const polygon = L.polygon(latlngs, {
             color: color,
             weight: 2,
@@ -1244,7 +1251,11 @@ function zoomVisible(minZoom) {
           polygon.addTo(regionsLayer);
         }
 
-        if (isChecked("toggleRegionLabels") && region.label) {
+        if (
+          isChecked("toggleRegionLabels") &&
+          region.label &&
+          zoomVisible(ZOOM_VISIBILITY.regionLabels)
+        ) {
           L.marker(mcToPixel(region.label.x, region.label.z), {
             icon: L.divIcon({
               className: "",
@@ -1262,6 +1273,8 @@ function zoomVisible(minZoom) {
       if (!isChecked("toggleCities")) return;
 
       cities.forEach(city => {
+        if (!zoomVisible(city.minZoom ?? ZOOM_VISIBILITY.cities)) return;
+
         const marker = L.marker(mcToPixel(city.x, city.z), { icon: cityIcon });
 
         marker.bindPopup(`
@@ -1281,6 +1294,8 @@ function zoomVisible(minZoom) {
       if (!isChecked("toggleStructures")) return;
 
       structures.forEach(structure => {
+        if (!zoomVisible(structure.minZoom ?? ZOOM_VISIBILITY.structures)) return;
+
         const marker = L.marker(mcToPixel(structure.x, structure.z), { icon: structureIcon });
 
         marker.bindPopup(`
@@ -1495,3 +1510,4 @@ function zoomVisible(minZoom) {
     renderAll();
   </script>
 </body>
+</html>
