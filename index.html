@@ -1407,11 +1407,36 @@ eldorian: {
       structuresLayer.clearLayers();
     }
 
-    function findRegionByManualPoint(x, z) {
-      // Toto je len informačné na kliknutie do mapy.
-      // Nepoužíva sa na priraďovanie miest ani štruktúr.
-      return null;
+   function isPointInPolygon(x, z, points) {
+  let inside = false;
+
+  for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+    const xi = points[i].x;
+    const zi = points[i].z;
+    const xj = points[j].x;
+    const zj = points[j].z;
+
+    const intersect =
+      ((zi > z) !== (zj > z)) &&
+      (x < ((xj - xi) * (z - zi)) / (zj - zi) + xi);
+
+    if (intersect) inside = !inside;
+  }
+
+  return inside;
+}
+
+function findRegionByManualPoint(x, z) {
+  for (const regionId in regions) {
+    const region = regions[regionId];
+
+    if (isPointInPolygon(x, z, region.points)) {
+      return regionId;
     }
+  }
+
+  return null;
+}
 
     // ===== VIDITEĽNOSŤ PODĽA ZOOMU =====
     const ZOOM_VISIBILITY = {
@@ -1495,22 +1520,25 @@ eldorian: {
     function renderCities() {
       if (!isChecked("toggleCities")) return;
 
-      cities.forEach(city => {
-        if (!zoomVisible(city.minZoom ?? ZOOM_VISIBILITY.cities)) return;
+     cities.forEach(city => {
+  if (!zoomVisible(city.minZoom ?? ZOOM_VISIBILITY.cities)) return;
 
-        const marker = L.marker(mcToPixel(city.x, city.z), { icon: cityIcon });
+  const autoRegionId = findRegionByManualPoint(city.x, city.z);
+  const finalRegionId = autoRegionId || city.regionId;
 
-        marker.bindPopup(`
-          <b>${city.name}</b><br>
-          Typ: ${city.type}<br>
-          Región: ${getRegionName(city.regionId)}<br>
-          Štát: ${getStateNameByRegionId(city.regionId)}<br>
-          X: ${city.x}<br>
-          Z: ${city.z}
-        `);
+  const marker = L.marker(mcToPixel(city.x, city.z), { icon: cityIcon });
 
-        marker.addTo(citiesLayer);
-      });
+  marker.bindPopup(`
+    <b>${city.name}</b><br>
+    Typ: ${city.type}<br>
+    Región: ${getRegionName(finalRegionId)}<br>
+    Štát: ${getStateNameByRegionId(finalRegionId)}<br>
+    X: ${city.x}<br>
+    Z: ${city.z}
+  `);
+
+  marker.addTo(citiesLayer);
+});
     }
 
     function renderStructures() {
@@ -1675,7 +1703,10 @@ eldorian: {
             </div>
           `;
 
-          const regionCities = cities.filter(c => c.regionId === regionId);
+         const regionCities = cities.filter(c => {
+  const autoRegionId = findRegionByManualPoint(c.x, c.z);
+  return autoRegionId === regionId;
+});
           const regionStructures = structures.filter(s => s.regionId === regionId);
 
           if (regionCities.length > 0) {
