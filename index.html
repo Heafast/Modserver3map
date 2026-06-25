@@ -2151,16 +2151,208 @@ function findRegionByManualPoint(x, z) {
     // ===== VIDITEĽNOSŤ PODĽA ZOOMU =====
     const ZOOM_VISIBILITY = {
       stateBorders: -5,
-      regions: -2.5,
-      regionLabels: -1.5,
-      cities: -0.5,
+      regions: -5,
+      regionLabels: -2.5,
+      cities: -1.5,
       structures: 0
     };
 
     function zoomVisible(minZoom) {
       return map.getZoom() >= minZoom;
     }
+const manualStateBorders = {
+  valkyria: {
+    name: "Valkýria",
+    points: [
+      { x: -7500, z: 653 }, // V17
+      { x: -5712, z: -222 }, // V16
+      { x: -5127, z: -397 }, // V15
+      { x: -4777, z: -315 }, // V14
+      { x: -4590, z: -285 }, // V13
+      { x: -3729, z: 789 }, // V12
+      { x: -4084, z: 1380 }, // V11
+      { x: -3959, z: 2048 }, // V10
+      { x: -3335, z: 2206 }, // V09
+      { x: -3378, z: 1882 }, // V08
+      { x: -3311, z: 1679 }, // V07
+      { x: -3194, z: 1674 }, // V06
+      { x: -2819, z: 1649 }, // V05
+      { x: -2769, z: 1424 }, // V04
+      { x: -2599, z: 1138 }, // V03
+      { x: -2519, z: 958 }, // V02
+      { x: -2369, z: 943 }, // V01
 
+      { x: -2197, z: 918 }, // S13
+      { x: -2209, z: 764 }, // S14
+      { x: -2391, z: 679 }, // S15
+      { x: -2459, z: 643 }, // S16
+      { x: -2464, z: 593 }, // S17
+      { x: -2465, z: 406 }, // S18 Západný
+
+      { x: -2440, z: 336 }, // S01
+      { x: -2184, z: 167 }, // S2
+      { x: -1975, z: 143 }, // S3
+      { x: -1835, z: 217 }, // S4
+      { x: -1702, z: 326 }, // S5
+      { x: -1649, z: 247 }, // S6
+      { x: -1448, z: 132 }, // S7
+
+      { x: -1278, z: 2 }, // X01
+      { x: -1357, z: -84 }, // X02
+      { x: -1292, z: -198 }, // X03
+      { x: -1030, z: -149 }, // X04
+      { x: -863, z: -196 }, // X05
+
+      { x: -822, z: -710 }, // E52
+      { x: -256, z: -1020 }, // E53
+      { x: 248, z: -1316 }, // E54
+
+      { x: 1025, z: -1766 }, // V27
+      { x: 1403, z: -3353 }, // V28
+      { x: 1704, z: -4612 }, // V29
+      { x: 1874, z: -5396 }, // V30
+      { x: 1678, z: -5886 }, // V31
+      { x: 1645, z: -6100 }, // V32
+      { x: 1717, z: -6236 }, // V33
+      { x: 1606, z: -6234 }, // V34
+      { x: 1611, z: -6273 }, // V35
+      { x: 1743, z: -6305 }, // V36
+      { x: 1630, z: -6398 }, // V37
+      { x: 1660, z: -6691 }, // V38
+      { x: 1752, z: -6914 }, // V39
+      { x: 1847, z: -7055 }, // 40
+      { x: 1956, z: -7122 }, // V41
+      { x: 2003, z: -7198 }, // V42
+      { x: 2206, z: -7500 }, // V43
+
+      { x: 825, z: -7500 }, // E51
+      { x: -1594, z: -7500 }, // A86
+      { x: -3189, z: -7500 }, // A63
+      { x: -4732, z: -7500 }, // A62
+      { x: -6624, z: -7500 }, // A57
+      { x: -7500, z: -7500 }, // A56
+      { x: -7500, z: -5301 }, // A55
+      { x: -7500, z: -2619 } // A26
+    ]
+  },
+
+  neutral: {
+    name: "Spawn",
+    points: [
+      { x: -2440, z: 336 }, // S01
+      { x: -2184, z: 167 }, // S2
+      { x: -1975, z: 143 }, // S3
+      { x: -1835, z: 217 }, // S4
+      { x: -1702, z: 326 }, // S5
+      { x: -1649, z: 247 }, // S6
+      { x: -1448, z: 132 }, // S7
+      { x: -1274, z: 337 }, // S8
+      { x: -1392, z: 347 }, // S9
+      { x: -1457, z: 494 }, // S10
+      { x: -1535, z: 619 }, // S22
+      { x: -1689, z: 880 }, // S11
+      { x: -1785, z: 932 }, // S12
+      { x: -2197, z: 918 }, // S13
+      { x: -2209, z: 764 }, // S14
+      { x: -2391, z: 679 }, // S15
+      { x: -2459, z: 643 }, // S16
+      { x: -2464, z: 593 }, // S17
+      { x: -2465, z: 406 } // S18 Západný
+    ]
+  },
+
+  grankolandia: {
+    name: "Grankolandia",
+    points: [
+      { x: 2206, z: -7500 }, // V43
+      { x: 2003, z: -7198 }, // V42
+      { x: 1956, z: -7122 }, // V41
+      { x: 1847, z: -7055 }, // 40
+      { x: 1752, z: -6914 }, // V39
+      { x: 1660, z: -6691 }, // V38
+      { x: 1630, z: -6398 }, // V37
+      { x: 1743, z: -6305 }, // V36
+      { x: 1611, z: -6273 }, // V35
+      { x: 1606, z: -6234 }, // V34
+      { x: 1717, z: -6236 }, // V33
+      { x: 1645, z: -6100 }, // V32
+      { x: 1678, z: -5886 }, // V31
+      { x: 1874, z: -5396 }, // V30
+      { x: 1704, z: -4612 }, // V29
+      { x: 1403, z: -3353 }, // V28
+      { x: 1025, z: -1766 }, // V27
+
+      { x: 248, z: -1316 }, // E54
+      { x: -256, z: -1020 }, // E53
+      { x: -822, z: -710 }, // E52
+
+      { x: -863, z: -196 }, // X05
+      { x: -1030, z: -149 }, // X04
+      { x: -1292, z: -198 }, // X03
+      { x: -1357, z: -84 }, // X02
+      { x: -1278, z: 2 }, // X01
+
+      { x: -1448, z: 132 }, // S7
+      { x: -1274, z: 337 }, // S8
+
+      { x: -1109, z: 295 }, // V18
+      { x: -958, z: 269 }, // V19
+      { x: -648, z: 124 }, // V20
+      { x: -475, z: 355 }, // V21
+      { x: -452, z: 480 }, // V22
+      { x: -183, z: -88 }, // V24
+      { x: 1037, z: -582 }, // V25
+
+      { x: 1987, z: 55 }, // V44
+      { x: 2893, z: -406 }, // V45
+      { x: 3135, z: -529 }, // V46
+      { x: 3560, z: -112 }, // V47
+      { x: 3781, z: 347 }, // V48
+      { x: 4323, z: 713 }, // V49
+      { x: 4556, z: 666 }, // V50
+      { x: 4605, z: 596 }, // V51
+      { x: 4873, z: 455 }, // V52
+      { x: 5032, z: 462 }, // V53
+      { x: 5150, z: 464 }, // V54
+      { x: 5271, z: 520 }, // V55
+      { x: 5353, z: 550 }, // V56
+      { x: 5458, z: 520 }, // V57
+      { x: 5523, z: 566 }, // V58
+      { x: 5921, z: 519 }, // V59
+      { x: 6429, z: 524 }, // V60
+      { x: 6500, z: 451 }, // V61
+      { x: 7500, z: 337 }, // V62
+
+      { x: 7496, z: -1016 }, // L51
+      { x: 7500, z: -3149 }, // D01
+      { x: 7500, z: -4319 }, // D02
+      { x: 7500, z: -5908 }, // D79
+      { x: 7500, z: -7500 }, // D80
+      { x: 5623, z: -7500 }, // D66
+      { x: 3660, z: -7500 } // D65
+    ]
+  }
+};
+
+function renderStateBorders() {
+  if (!isChecked("toggleStates")) return;
+  if (!zoomVisible(ZOOM_VISIBILITY.stateBorders)) return;
+
+  for (const stateId in manualStateBorders) {
+    const border = manualStateBorders[stateId];
+    const state = states[stateId];
+    if (!state || !border.points || border.points.length < 3) continue;
+
+    const latlngs = border.points.map(p => mcToPixel(p.x, p.z));
+
+    L.polygon(latlngs, {
+      color: state.color,
+      weight: 7,
+      fillOpacity: 0,
+      opacity: 0.95
+    }).addTo(stateBordersLayer);
+  }
+}
     // ===== RENDER =====
     function renderRegions() {
       for (const regionId in regions) {
@@ -2169,15 +2361,7 @@ function findRegionByManualPoint(x, z) {
         const color = state ? state.color : "#ffffff";
         const latlngs = region.points.map(p => mcToPixel(p.x, p.z));
 
-        if (isChecked("toggleStates") && zoomVisible(ZOOM_VISIBILITY.stateBorders)) {
-          L.polygon(latlngs, {
-            color: color,
-            weight: 7,
-            fillOpacity: 0,
-            opacity: 0.95
-          }).addTo(stateBordersLayer);
-        }
-
+        
         if (isChecked("toggleRegions") && zoomVisible(ZOOM_VISIBILITY.regions)) {
           const polygon = L.polygon(latlngs, {
             color: color,
@@ -2272,12 +2456,13 @@ function findRegionByManualPoint(x, z) {
       });
     }
 
-    function renderAll() {
-      clearLayers();
-      renderRegions();
-      renderCities();
-      renderStructures();
-    }
+  function renderAll() {
+  clearLayers();
+  renderStateBorders();
+  renderRegions();
+  renderCities();
+  renderStructures();
+}
 
     // ===== KLIK NA MAPU =====
     let searchMarker = null;
